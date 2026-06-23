@@ -1,0 +1,806 @@
+export type Lang = "bg" | "en";
+
+export type Product = {
+  id: string;
+  colorClass: string;
+  garmentClass: string;
+  price: number;
+  gallery: string[];
+  sizes: string[];
+  stock: number;
+  details: string[];
+  care: string[];
+  translations: Record<
+    Lang,
+    {
+      name: string;
+      category: string;
+      short: string;
+      description: string;
+      fit: string;
+      material: string;
+      badge: string;
+    }
+  >;
+};
+
+export type Dictionary = Record<string, string>;
+
+export type OrderChannel = "address" | "office";
+export type PaymentMethod = "card" | "cash";
+export type OrderStatus = "pending" | "received" | "traveling" | "ready" | "completed";
+
+export type Order = {
+  id: string;
+  customer: string;
+  city: string;
+  createdAt: string;
+  channel: OrderChannel;
+  payment: PaymentMethod;
+  status: OrderStatus;
+  total: number;
+  items: Array<{
+    productId: string;
+    quantity: number;
+  }>;
+};
+
+export type Review = {
+  id: string;
+  productId: string;
+  customer: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
+export type AdminStockItem = {
+  product: string;
+  category: string;
+  sizes: {
+    XS: number;
+    S: number;
+    M: number;
+    L: number;
+    XL: number;
+  };
+  total: number;
+};
+
+export type AdminOrderRecord = {
+  order: string;
+  customer: string;
+  items: string;
+  totalBgn: string;
+  payment: "Card" | "Cash on delivery";
+  status: "Delivered" | "In transit" | "Processing" | "Cancelled";
+  date: string;
+  deliveryMethod: "Address" | "Office";
+};
+
+export type AdminReviewRecord = {
+  customer: string;
+  date: string;
+  product: string;
+  comment: string;
+  rating: number;
+  flagged?: boolean;
+};
+
+export const dictionaries: Record<Lang, Dictionary> = {
+  bg: {
+    "nav.collection": "Колекция",
+    "nav.standard": "Стандарт",
+    "nav.checkout": "Плащане",
+    "nav.admin": "Админ",
+    "nav.cart": "Количка",
+    "nav.cta": "Виж продуктите",
+    "hero.eyebrow": "Лимитирана ежедневна мода",
+    "hero.title": "Комфорт, който изглежда осъзнат.",
+    "hero.text":
+      "ICONIC създава лимитирани дрехи с чист силует, удобна кройка и премерен детайл - за хора, които искат стилът им да изглежда естествен.",
+    "hero.primary": "Пазарувай демо",
+    "hero.secondary": "Виж стандарта",
+    "hero.cardLabel": "Първи drop",
+    "hero.cardTitle": "Ризи, панталони и основни тениски в малки серии.",
+    "metrics.one": "Удобство без компромис",
+    "metrics.two": "Ръчна изработка и контрол",
+    "metrics.three": "Ограничени количества",
+    "metrics.four": "Stripe checkout демо",
+    "intro.label": "Позициониране",
+    "intro.title": "ICONIC е за спокойна увереност, не за шумна показност.",
+    "intro.text":
+      "Марката започва от проста идея: дрехата трябва да изглежда добре, да се усеща свободно и да носи стойност отвъд един сезон.",
+    "intro.text2":
+      "Първите продукти са модерни летни основи с достъпна цена, ограничени бройки и внимание към усещането при получаване.",
+    "collection.label": "Демо продукти",
+    "collection.title": "Първа линия: чисти форми за топли дни.",
+    "collection.text":
+      "Избери продукт за детайлна страница с размери, материя, грижа и опция за добавяне в количката.",
+    "product.view": "Детайли",
+    "product.add": "Добави",
+    "product.image": "Снимка на продукт",
+    "detail.back": "Назад към колекцията",
+    "detail.size": "Размер",
+    "detail.fit": "Кройка",
+    "detail.material": "Материя",
+    "detail.stock": "Наличност",
+    "detail.stockValue": "Остават {count} броя",
+    "detail.details": "Детайли",
+    "detail.care": "Грижа",
+    "detail.add": "Добави в количката",
+    "detail.previousImage": "Предишна снимка",
+    "detail.nextImage": "Следваща снимка",
+    "related.label": "Подобни продукти",
+    "related.title": "Може да ти харесат още",
+    "standard.label": "Стандарт",
+    "standard.title": "Малък тираж, ясни проверки, по-добър контрол.",
+    "standard.text":
+      "Всеки модел се планира в ограничени количества. Материите се преглеждат предварително, кройките се режат ръчно, а готовите изделия се проверяват преди изпращане.",
+    "standard.point1": "Избор на приятни материи и кройки с движение.",
+    "standard.point2": "Ръчна подготовка и шиене с внимание към детайла.",
+    "standard.point3": "Финална проверка, опаковане и бърза комуникация.",
+    "cart.title": "Количка",
+    "cart.empty": "Количката е празна.",
+    "cart.size": "Размер",
+    "cart.remove": "Премахни",
+    "cart.subtotal": "Междинна сума",
+    "cart.delivery": "Доставка",
+    "cart.total": "Общо",
+    "checkout.label": "Плащане",
+    "checkout.back": "Обратно към продуктите",
+    "checkout.title": "Демо вградено плащане със Stripe.",
+    "checkout.text":
+      "Stripe е практичен първи избор за България, защото официално поддържа български бизнеси и има готови checkout компоненти. Тук е показан безопасен демо поток - реалното плащане изисква backend endpoint и Stripe ключове.",
+    "checkout.provider": "Препоръчан provider",
+    "checkout.card": "Карта",
+    "checkout.deliveryStep": "1. Доставка",
+    "checkout.paymentStep": "2. Плащане",
+    "checkout.discountStep": "3. Код за отстъпка",
+    "checkout.addressDelivery": "Доставка до адрес",
+    "checkout.addressDeliveryText": "Куриер до врата · €3 · 1-2 дни",
+    "checkout.officeDelivery": "Доставка до офис",
+    "checkout.officeDeliveryText": "Вземане от офис на куриер · €2 · 1-2 дни",
+    "checkout.fullName": "Име и фамилия",
+    "checkout.street": "Улица и номер",
+    "checkout.city": "Град",
+    "checkout.postalCode": "Пощенски код",
+    "checkout.courierOffice": "Офис на куриер",
+    "checkout.cardPayment": "Плати с карта",
+    "checkout.cardPaymentText": "3% отстъпка при плащане с карта",
+    "checkout.cashPayment": "Плащане при получаване",
+    "checkout.cashPaymentText": "Плащане към куриера при получаване",
+    "checkout.discountCode": "Код за отстъпка",
+    "checkout.applyCode": "Приложи",
+    "checkout.discountApplied": "Кодът е приложен",
+    "checkout.discountInvalid": "Този код не е активен.",
+    "checkout.summary": "Обобщение",
+    "checkout.discount": "Отстъпка",
+    "checkout.cardSaving": "Отстъпка за карта",
+    "checkout.name": "Име на картодържател",
+    "checkout.pay": "Плати демо",
+    "checkout.note": "Не се обработват реални карти. Това е UI прототип за бъдеща Stripe интеграция.",
+    "checkout.success": "Демо поръчката е създадена. Следваща стъпка: реален Stripe Checkout Session endpoint.",
+    "admin.label": "Админ панел",
+    "admin.title": "Поръчки, канали и разплащания на едно място.",
+    "admin.text":
+      "Тук виждаш какво е платено с карта, какво е за плащане при получаване, колко поръчки са за адрес и колко за офис на куриер.",
+    "admin.overview": "Общ преглед",
+    "admin.orders": "Поръчки",
+    "admin.delivery": "Доставка",
+    "admin.stock": "Наличност",
+    "admin.reviews": "Ревюта",
+    "admin.tabOverview": "Преглед",
+    "admin.tabStock": "Наличност",
+    "admin.tabOrders": "Поръчки",
+    "admin.tabDelivery": "Доставка",
+    "admin.tabReviews": "Ревюта",
+    "admin.openOrders": "Активни поръчки",
+    "admin.priority": "Нужно внимание",
+    "admin.lowStock": "Ниска наличност",
+    "admin.lowStockText": "Модели с малко оставащи бройки.",
+    "admin.reviewWatch": "Ревюта за преглед",
+    "admin.reviewWatchText": "Коментари с по-нисък рейтинг или конкретна забележка.",
+    "admin.avgRating": "Среден рейтинг",
+    "admin.totalStock": "Обща наличност",
+    "admin.product": "Продукт",
+    "admin.category": "Категория",
+    "admin.remaining": "Оставащи",
+    "admin.noReviews": "Няма ревюта за показване.",
+    "admin.statusBoard": "Статус на поръчките",
+    "admin.pending": "Чакащи",
+    "admin.received": "Получени, но неприбрани",
+    "admin.traveling": "Пътуват",
+    "admin.ready": "Готови за взимане",
+    "admin.completed": "Завършени",
+    "admin.channelAddress": "До адрес",
+    "admin.channelOffice": "До офис",
+    "admin.paymentCard": "С карта",
+    "admin.paymentCash": "Плащане при получаване",
+    "admin.totalOrders": "Общо поръчки",
+    "admin.revenue": "Оборот",
+    "admin.items": "Артикули",
+    "admin.empty": "Няма поръчки в тази секция.",
+    "footer.kicker": "G-TOWN",
+    "footer.text": "Сезонен лен, кроен и завършен в G-Town. Една материя, носена добре.",
+    "footer.shop": "Магазин",
+    "footer.shop1": "Лятна колекция",
+    "footer.shop2": "Най-продавани",
+    "footer.shop3": "Нови продукти",
+    "footer.shop4": "Подаръчни карти",
+    "footer.help": "Помощ",
+    "footer.help1": "Доставка",
+    "footer.help2": "Връщане и замяна",
+    "footer.help3": "Размери",
+    "footer.help4": "Контакт",
+    "footer.about": "За нас",
+    "footer.about1": "Материята",
+    "footer.about2": "G-Town студио",
+    "footer.about3": "Журнал",
+    "footer.about4": "Устойчивост",
+    "footer.rights": "© 2026 ICONIC. (G-Town). Всички права запазени.",
+    "footer.made": "Проектирано и завършено в G-Town.",
+  },
+  en: {
+    "nav.collection": "Collection",
+    "nav.standard": "Standard",
+    "nav.checkout": "Checkout",
+    "nav.admin": "Admin",
+    "nav.cart": "Cart",
+    "nav.cta": "View products",
+    "hero.eyebrow": "Limited everyday fashion",
+    "hero.title": "Comfort that looks intentional.",
+    "hero.text":
+      "ICONIC creates limited garments with clean silhouettes, relaxed cuts, and considered details - for people who want their style to feel effortless.",
+    "hero.primary": "Shop demo",
+    "hero.secondary": "See the standard",
+    "hero.cardLabel": "First drop",
+    "hero.cardTitle": "Shirts, trousers, and core tees produced in small runs.",
+    "metrics.one": "Comfort without compromise",
+    "metrics.two": "Handmade process and control",
+    "metrics.three": "Limited quantities",
+    "metrics.four": "Stripe checkout demo",
+    "intro.label": "Positioning",
+    "intro.title": "ICONIC is quiet confidence, not loud display.",
+    "intro.text":
+      "The brand starts from a simple idea: clothing should look refined, feel unrestricted, and hold value beyond one season.",
+    "intro.text2":
+      "The first products are modern summer essentials with accessible pricing, limited availability, and a thoughtful unboxing experience.",
+    "collection.label": "Demo products",
+    "collection.title": "First line: clean forms for warm days.",
+    "collection.text":
+      "Open a product page for sizing, fabric, care information, and an add-to-cart flow.",
+    "product.view": "Details",
+    "product.add": "Add",
+    "product.image": "Product image",
+    "detail.back": "Back to collection",
+    "detail.size": "Size",
+    "detail.fit": "Fit",
+    "detail.material": "Material",
+    "detail.stock": "Stock",
+    "detail.stockValue": "{count} pieces left",
+    "detail.details": "Details",
+    "detail.care": "Care",
+    "detail.add": "Add to cart",
+    "detail.previousImage": "Previous image",
+    "detail.nextImage": "Next image",
+    "related.label": "Related products",
+    "related.title": "You may also like",
+    "standard.label": "Standard",
+    "standard.title": "Small runs, clear checks, better control.",
+    "standard.text":
+      "Each style is planned in limited quantities. Fabrics are reviewed before production, patterns are cut by hand, and finished pieces are checked before shipping.",
+    "standard.point1": "Comfortable fabrics and cuts that allow movement.",
+    "standard.point2": "Manual preparation and sewing with attention to detail.",
+    "standard.point3": "Final quality check, packaging, and responsive communication.",
+    "cart.title": "Cart",
+    "cart.empty": "Your cart is empty.",
+    "cart.size": "Size",
+    "cart.remove": "Remove",
+    "cart.subtotal": "Subtotal",
+    "cart.delivery": "Delivery",
+    "cart.total": "Total",
+    "checkout.label": "Payment",
+    "checkout.back": "Back to products",
+    "checkout.title": "Demo embedded checkout with Stripe.",
+    "checkout.text":
+      "Stripe is a practical first choice for Bulgaria because it officially supports Bulgarian businesses and offers ready checkout components. This is a safe demo flow - real payments require a backend endpoint and Stripe keys.",
+    "checkout.provider": "Recommended provider",
+    "checkout.card": "Card",
+    "checkout.deliveryStep": "1. Delivery",
+    "checkout.paymentStep": "2. Payment",
+    "checkout.discountStep": "3. Discount code",
+    "checkout.addressDelivery": "Deliver to address",
+    "checkout.addressDeliveryText": "Courier to your door · €3 · 1-2 days",
+    "checkout.officeDelivery": "Deliver to courier office",
+    "checkout.officeDeliveryText": "Pick up from courier office · €2 · 1-2 days",
+    "checkout.fullName": "Full name",
+    "checkout.street": "Street and number",
+    "checkout.city": "City",
+    "checkout.postalCode": "Postal code",
+    "checkout.courierOffice": "Courier office",
+    "checkout.cardPayment": "Pay by card",
+    "checkout.cardPaymentText": "Get 3% off when paying by card",
+    "checkout.cashPayment": "Cash on delivery",
+    "checkout.cashPaymentText": "Pay the courier when it arrives",
+    "checkout.discountCode": "Discount code",
+    "checkout.applyCode": "Apply",
+    "checkout.discountApplied": "Code applied",
+    "checkout.discountInvalid": "That code is not active.",
+    "checkout.summary": "Order summary",
+    "checkout.discount": "Discount",
+    "checkout.cardSaving": "Card payment saving",
+    "checkout.name": "Cardholder name",
+    "checkout.pay": "Pay demo",
+    "checkout.note": "No real cards are processed. This is a UI prototype for a future Stripe integration.",
+    "checkout.success": "Demo order created. Next step: a real Stripe Checkout Session endpoint.",
+    "admin.label": "Admin panel",
+    "admin.title": "Orders, channels, and payments in one place.",
+    "admin.text":
+      "See what was paid by card, what is set to cash on delivery, how many orders go to an address, and how many go to a courier office.",
+    "admin.overview": "Overview",
+    "admin.orders": "Orders",
+    "admin.delivery": "Delivery",
+    "admin.stock": "Stock",
+    "admin.reviews": "Reviews",
+    "admin.tabOverview": "Overview",
+    "admin.tabStock": "Stock",
+    "admin.tabOrders": "Orders",
+    "admin.tabDelivery": "Delivery",
+    "admin.tabReviews": "Reviews",
+    "admin.openOrders": "Open orders",
+    "admin.priority": "Needs attention",
+    "admin.lowStock": "Low stock",
+    "admin.lowStockText": "Styles with only a few units left.",
+    "admin.reviewWatch": "Review watch",
+    "admin.reviewWatchText": "Comments with lower ratings or specific fit issues.",
+    "admin.avgRating": "Average rating",
+    "admin.totalStock": "Total stock",
+    "admin.product": "Product",
+    "admin.category": "Category",
+    "admin.remaining": "Remaining",
+    "admin.noReviews": "No reviews to show.",
+    "admin.statusBoard": "Order status",
+    "admin.pending": "Pending",
+    "admin.received": "Received, not taken yet",
+    "admin.traveling": "Traveling",
+    "admin.ready": "Ready for pickup",
+    "admin.completed": "Completed",
+    "admin.channelAddress": "To address",
+    "admin.channelOffice": "To office",
+    "admin.paymentCard": "Paid by card",
+    "admin.paymentCash": "Cash on delivery",
+    "admin.totalOrders": "Total orders",
+    "admin.revenue": "Revenue",
+    "admin.items": "Items",
+    "admin.empty": "No orders in this section.",
+    "footer.kicker": "G-TOWN",
+    "footer.text": "Seasonal linen, cut and finished in G-Town. One fabric, worn well.",
+    "footer.shop": "Shop",
+    "footer.shop1": "Summer Collection",
+    "footer.shop2": "Best Sellers",
+    "footer.shop3": "New Arrivals",
+    "footer.shop4": "Gift Cards",
+    "footer.help": "Help",
+    "footer.help1": "Shipping",
+    "footer.help2": "Returns & Exchanges",
+    "footer.help3": "Size Guide",
+    "footer.help4": "Contact",
+    "footer.about": "About",
+    "footer.about1": "The Fabric",
+    "footer.about2": "G-Town Studio",
+    "footer.about3": "Journal",
+    "footer.about4": "Sustainability",
+    "footer.rights": "© 2026 ICONIC. (G-Town). All rights reserved.",
+    "footer.made": "Designed and finished in G-Town.",
+  },
+};
+
+export const products: Product[] = [
+  {
+    id: "relaxed-shirt",
+    colorClass: "tone-cream",
+    garmentClass: "garment-shirt",
+    price: 69,
+    gallery: [
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=1100&q=80",
+    ],
+    sizes: ["S", "M", "L", "XL"],
+    stock: 18,
+    details: ["limited", "hand-cut", "gift"],
+    care: ["wash30", "airDry", "ironLow"],
+    translations: {
+      bg: {
+        name: "Relaxed Shirt",
+        category: "Лека риза",
+        short: "Свободна линия, чиста яка и достатъчно въздух за летен ритъм.",
+        description:
+          "Риза с relaxed силует за топли дни, направена да стои подредено без да ограничава движението.",
+        fit: "Свободна кройка",
+        material: "Ленена смес с меко усещане",
+        badge: "Първи drop",
+      },
+      en: {
+        name: "Relaxed Shirt",
+        category: "Light shirt",
+        short: "A loose line, clean collar, and enough ease for a summer rhythm.",
+        description:
+          "A relaxed warm-weather shirt designed to look composed without restricting movement.",
+        fit: "Relaxed fit",
+        material: "Soft linen-blend feel",
+        badge: "First drop",
+      },
+    },
+  },
+  {
+    id: "easy-trouser",
+    colorClass: "tone-green",
+    garmentClass: "garment-trouser",
+    price: 89,
+    gallery: [
+      "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1100&q=80",
+    ],
+    sizes: ["S", "M", "L"],
+    stock: 12,
+    details: ["limited", "comfort", "city"],
+    care: ["wash30", "airDry", "steam"],
+    translations: {
+      bg: {
+        name: "Easy Trouser",
+        category: "Комфортен панталон",
+        short: "Кройка за движение, градски силует и стабилно усещане през целия ден.",
+        description:
+          "Панталон за ежедневен ритъм: достатъчно чист за излизане, достатъчно удобен за целия ден.",
+        fit: "Прав relaxed силует",
+        material: "Плътна ленена смес",
+        badge: "Ограничени бройки",
+      },
+      en: {
+        name: "Easy Trouser",
+        category: "Comfort trouser",
+        short: "A movement-first cut, urban silhouette, and stable feel throughout the day.",
+        description:
+          "A trouser for everyday rhythm: clean enough to go out, comfortable enough to wear all day.",
+        fit: "Straight relaxed silhouette",
+        material: "Structured linen-blend feel",
+        badge: "Limited run",
+      },
+    },
+  },
+  {
+    id: "core-tee",
+    colorClass: "tone-clay",
+    garmentClass: "garment-tee",
+    price: 49,
+    gallery: [
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=1100&q=80",
+      "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1100&q=80",
+    ],
+    sizes: ["XS", "S", "M", "L", "XL"],
+    stock: 24,
+    details: ["essential", "soft", "layer"],
+    care: ["wash30", "insideOut", "airDry"],
+    translations: {
+      bg: {
+        name: "Core Tee",
+        category: "Основна тениска",
+        short: "Минимална тениска, направена да стои добре самостоятелно или под риза.",
+        description:
+          "Основен модел с премерена тежест, изчистена линия и усещане, което работи всеки ден.",
+        fit: "Regular fit",
+        material: "Мек памук с стабилна структура",
+        badge: "Ежедневна основа",
+      },
+      en: {
+        name: "Core Tee",
+        category: "Essential tee",
+        short: "A minimal tee designed to stand on its own or sit cleanly under a shirt.",
+        description:
+          "A core style with considered weight, a clean line, and a feel that works every day.",
+        fit: "Regular fit",
+        material: "Soft cotton with stable structure",
+        badge: "Daily essential",
+      },
+    },
+  },
+];
+
+export const detailLabels: Record<Lang, Record<string, string>> = {
+  bg: {
+    limited: "Лимитирана серия",
+    "hand-cut": "Ръчно рязане",
+    gift: "Подарък в поръчката",
+    comfort: "Кройка за движение",
+    city: "Градски силует",
+    essential: "Основен модел",
+    soft: "Меко усещане",
+    layer: "Лесно наслояване",
+    wash30: "Пране на 30 градуса",
+    airDry: "Сушене на въздух",
+    ironLow: "Гладене на ниска температура",
+    steam: "Лека пара при нужда",
+    insideOut: "Пране обърнато наопаки",
+  },
+  en: {
+    limited: "Limited run",
+    "hand-cut": "Hand-cut preparation",
+    gift: "Gift in the order",
+    comfort: "Movement-first cut",
+    city: "Urban silhouette",
+    essential: "Core style",
+    soft: "Soft hand feel",
+    layer: "Easy layering",
+    wash30: "Wash at 30 degrees",
+    airDry: "Air dry",
+    ironLow: "Iron on low heat",
+    steam: "Light steam if needed",
+    insideOut: "Wash inside out",
+  },
+};
+
+export const demoOrders: Order[] = [
+  {
+    id: "ORD-1041",
+    customer: "Mila Petrova",
+    city: "Sofia",
+    createdAt: "2026-06-21",
+    channel: "address",
+    payment: "card",
+    status: "pending",
+    total: 158,
+    items: [
+      { productId: "relaxed-shirt", quantity: 1 },
+      { productId: "core-tee", quantity: 1 },
+    ],
+  },
+  {
+    id: "ORD-1042",
+    customer: "Ivan Stoyanov",
+    city: "Plovdiv",
+    createdAt: "2026-06-21",
+    channel: "office",
+    payment: "cash",
+    status: "received",
+    total: 89,
+    items: [{ productId: "easy-trouser", quantity: 1 }],
+  },
+  {
+    id: "ORD-1043",
+    customer: "Nina Georgieva",
+    city: "Varna",
+    createdAt: "2026-06-20",
+    channel: "address",
+    payment: "card",
+    status: "traveling",
+    total: 138,
+    items: [
+      { productId: "relaxed-shirt", quantity: 1 },
+      { productId: "easy-trouser", quantity: 1 },
+    ],
+  },
+  {
+    id: "ORD-1044",
+    customer: "Petar Dimitrov",
+    city: "Burgas",
+    createdAt: "2026-06-19",
+    channel: "office",
+    payment: "cash",
+    status: "ready",
+    total: 49,
+    items: [{ productId: "core-tee", quantity: 1 }],
+  },
+  {
+    id: "ORD-1045",
+    customer: "Elena Ivanova",
+    city: "Ruse",
+    createdAt: "2026-06-18",
+    channel: "address",
+    payment: "card",
+    status: "completed",
+    total: 227,
+    items: [
+      { productId: "relaxed-shirt", quantity: 2 },
+      { productId: "easy-trouser", quantity: 1 },
+    ],
+  },
+];
+
+export const demoReviews: Review[] = [
+  {
+    id: "REV-201",
+    productId: "relaxed-shirt",
+    customer: "Mila Petrova",
+    rating: 5,
+    comment: "Soft fabric and a clean fit. Easy to wear straight out of the package.",
+    createdAt: "2026-06-21",
+  },
+  {
+    id: "REV-202",
+    productId: "easy-trouser",
+    customer: "Ivan Stoyanov",
+    rating: 3,
+    comment: "Great shape, but I would want one shorter length option.",
+    createdAt: "2026-06-20",
+  },
+  {
+    id: "REV-203",
+    productId: "core-tee",
+    customer: "Nina Georgieva",
+    rating: 4,
+    comment: "Good weight and structure, maybe slightly oversized in the shoulders.",
+    createdAt: "2026-06-19",
+  },
+  {
+    id: "REV-204",
+    productId: "relaxed-shirt",
+    customer: "Petar Dimitrov",
+    rating: 2,
+    comment: "Nice fabric, but the sleeves felt too long for my size.",
+    createdAt: "2026-06-18",
+  },
+];
+
+export const adminStock: AdminStockItem[] = [
+  { product: "Midi Skirt", category: "Skirts", sizes: { XS: 3, S: 0, M: 2, L: 0, XL: 1 }, total: 6 },
+  {
+    product: "Relaxed Blazer",
+    category: "Outerwear",
+    sizes: { XS: 0, S: 2, M: 1, L: 4, XL: 3 },
+    total: 10,
+  },
+  { product: "Slip Dress", category: "Dresses", sizes: { XS: 6, S: 3, M: 0, L: 4, XL: 1 }, total: 14 },
+  {
+    product: "Boxy Overshirt",
+    category: "Outerwear",
+    sizes: { XS: 2, S: 0, M: 5, L: 5, XL: 2 },
+    total: 14,
+  },
+  { product: "Field Shirt", category: "Shirts", sizes: { XS: 4, S: 9, M: 2, L: 7, XL: 0 }, total: 22 },
+  {
+    product: "Wide Trouser",
+    category: "Trousers",
+    sizes: { XS: 0, S: 5, M: 8, L: 3, XL: 6 },
+    total: 22,
+  },
+  {
+    product: "Drawstring Short",
+    category: "Shorts",
+    sizes: { XS: 7, S: 6, M: 6, L: 0, XL: 3 },
+    total: 22,
+  },
+  { product: "Camp Top", category: "Shirts", sizes: { XS: 5, S: 8, M: 8, L: 6, XL: 2 }, total: 29 },
+];
+
+export const adminOrders: AdminOrderRecord[] = [
+  {
+    order: "GT-1042",
+    customer: "Mira Kirova",
+    items: "Slip Dress, Camp Top",
+    totalBgn: "147.00 BGN",
+    payment: "Card",
+    status: "Delivered",
+    date: "2026-06-20",
+    deliveryMethod: "Address",
+  },
+  {
+    order: "GT-1041",
+    customer: "Teodor Petrov",
+    items: "Field Shirt",
+    totalBgn: "65.96 BGN",
+    payment: "Card",
+    status: "Delivered",
+    date: "2026-06-19",
+    deliveryMethod: "Address",
+  },
+  {
+    order: "GT-1040",
+    customer: "Yana Vasileva",
+    items: "Wide Trouser, Drawstring Short",
+    totalBgn: "126.00 BGN",
+    payment: "Cash on delivery",
+    status: "In transit",
+    date: "2026-06-19",
+    deliveryMethod: "Address",
+  },
+  {
+    order: "GT-1039",
+    customer: "Hristo Dimitrov",
+    items: "Relaxed Blazer",
+    totalBgn: "124.16 BGN",
+    payment: "Card",
+    status: "In transit",
+    date: "2026-06-18",
+    deliveryMethod: "Office",
+  },
+  {
+    order: "GT-1038",
+    customer: "Elena Stoyanova",
+    items: "Midi Skirt, Camp Top",
+    totalBgn: "134.00 BGN",
+    payment: "Cash on delivery",
+    status: "Processing",
+    date: "2026-06-17",
+    deliveryMethod: "Office",
+  },
+  {
+    order: "GT-1037",
+    customer: "Ivan Radev",
+    items: "Boxy Overshirt",
+    totalBgn: "79.54 BGN",
+    payment: "Card",
+    status: "Processing",
+    date: "2026-06-17",
+    deliveryMethod: "Address",
+  },
+  {
+    order: "GT-1036",
+    customer: "Nia Georgieva",
+    items: "Slip Dress",
+    totalBgn: "89.00 BGN",
+    payment: "Cash on delivery",
+    status: "Delivered",
+    date: "2026-06-15",
+    deliveryMethod: "Address",
+  },
+  {
+    order: "GT-1035",
+    customer: "Plamen Iliev",
+    items: "Wide Trouser",
+    totalBgn: "71.78 BGN",
+    payment: "Card",
+    status: "Cancelled",
+    date: "2026-06-14",
+    deliveryMethod: "Office",
+  },
+];
+
+export const adminReviews: AdminReviewRecord[] = [
+  {
+    customer: "Elena S.",
+    date: "2026-06-10",
+    product: "Midi Skirt",
+    comment: "Lovely fabric but ran small in the waist.",
+    rating: 2,
+    flagged: true,
+  },
+  {
+    customer: "Yana V.",
+    date: "2026-06-15",
+    product: "Wide Trouser",
+    comment: "Great drape, wish the inseam came in a petite length.",
+    rating: 4,
+  },
+  {
+    customer: "Mira K.",
+    date: "2026-06-18",
+    product: "Slip Dress",
+    comment: "Softer after every wash, fits true to size.",
+    rating: 5,
+  },
+  {
+    customer: "Teodor P.",
+    date: "2026-06-17",
+    product: "Field Shirt",
+    comment: "Linen is heavy enough not to feel cheap. Sizing runs big.",
+    rating: 4,
+  },
+  {
+    customer: "Hristo D.",
+    date: "2026-06-12",
+    product: "Relaxed Blazer",
+    comment: "Wore it open over a camp top all week. Worth the price.",
+    rating: 5,
+  },
+  {
+    customer: "Ivan R.",
+    date: "2026-06-08",
+    product: "Boxy Overshirt",
+    comment: "Exactly the third piece I was missing for summer.",
+    rating: 5,
+  },
+];
