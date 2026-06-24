@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Lang, Product } from "../../data";
+import { fetchCourierCities, fetchCourierOffices, fetchCourierQuote } from "../../services/courierApi";
+import type { CourierOffice, CourierProvider } from "../../types/courier";
 import type { CartItem } from "../../types/app";
-import { deliveryPrice, formatPrice } from "../../utils/format";
+import { formatPrice } from "../../utils/format";
 
 export default function Checkout({
   lang,
@@ -22,6 +24,17 @@ export default function Checkout({
 }) {
   const [delivery, setDelivery] = useState<"address" | "office">("address");
   const [payment, setPayment] = useState<"card" | "cash">("card");
+  const [provider, setProvider] = useState<CourierProvider>("speedy");
+  const [officeCity, setOfficeCity] = useState("");
+  const [officeCities, setOfficeCities] = useState<string[]>([]);
+  const [courierDataSource, setCourierDataSource] = useState<"live" | "fallback">("fallback");
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [offices, setOffices] = useState<CourierOffice[]>([]);
+  const [selectedOfficeId, setSelectedOfficeId] = useState("");
+  const [loadingOffices, setLoadingOffices] = useState(false);
+  const [deliveryError, setDeliveryError] = useState("");
+  const [quoteAmount, setQuoteAmount] = useState<number | null>(null);
+  const [quoteEstimate, setQuoteEstimate] = useState(true);
   const [discountInput, setDiscountInput] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState("");
   const [discountError, setDiscountError] = useState("");
@@ -29,8 +42,115 @@ export default function Checkout({
   const discount = subtotal * discountRate;
   const afterDiscount = subtotal - discount;
   const cardSaving = payment === "card" ? afterDiscount * 0.03 : 0;
-  const checkoutDelivery = subtotal > 0 ? (delivery === "address" ? 3 : 2) : 0;
+  const checkoutDelivery = subtotal > 0 ? quoteAmount ?? (delivery === "address" ? 4.2 : 3.1) : 0;
   const checkoutTotal = Math.max(0, afterDiscount - cardSaving + checkoutDelivery);
+  const selectedOffice = useMemo(
+    () => offices.find((office) => office.id === selectedOfficeId) ?? null,
+    [offices, selectedOfficeId],
+  );
+
+  useEffect(() => {
+    if (delivery !== "office") return;
+
+    let ignore = false;
+
+    async function loadCities() {
+      setLoadingCities(true);
+      setDeliveryError("");
+      setOfficeCities([]);
+      setOffices([]);
+      setSelectedOfficeId("");
+
+      try {
+        const response = await fetchCourierCities(provider);
+        if (ignore) return;
+
+        setOfficeCities(response.cities);
+        setCourierDataSource(response.source);
+        setOfficeCity((currentCity) => {
+          if (response.cities.includes(currentCity)) return currentCity;
+          return response.cities[0] ?? "";
+        });
+      } catch {
+        if (ignore) return;
+        setOfficeCities([]);
+        setOfficeCity("");
+        setDeliveryError(t["checkout.deliveryError"]);
+      } finally {
+        if (!ignore) setLoadingCities(false);
+      }
+    }
+
+    void loadCities();
+
+    return () => {
+      ignore = true;
+    };
+  }, [delivery, provider, t]);
+
+  useEffect(() => {
+    if (delivery !== "office" || !officeCity) return;
+
+    let ignore = false;
+
+    async function loadOffices() {
+      setLoadingOffices(true);
+      setDeliveryError("");
+
+      try {
+        const response = await fetchCourierOffices(provider, officeCity);
+        if (ignore) return;
+
+        setOffices(response.offices);
+        setCourierDataSource(response.source);
+        setSelectedOfficeId(response.offices[0]?.id ?? "");
+      } catch {
+        if (ignore) return;
+
+        setOffices([]);
+        setSelectedOfficeId("");
+        setDeliveryError(t["checkout.deliveryError"]);
+      } finally {
+        if (!ignore) setLoadingOffices(false);
+      }
+    }
+
+    void loadOffices();
+
+    return () => {
+      ignore = true;
+    };
+  }, [delivery, provider, officeCity, t]);
+
+  useEffect(() => {
+    async function loadQuote() {
+      if (subtotal <= 0) {
+        setQuoteAmount(0);
+        return;
+      }
+
+      try {
+        const { quote } = await fetchCourierQuote({
+          provider,
+          deliveryMethod: delivery,
+          city: delivery === "office" ? officeCity : "Sofia",
+          postalCode: selectedOffice?.postcode,
+          officeId: selectedOfficeId || undefined,
+          subtotal,
+          itemCount: cartLines.reduce((sum, line) => sum + line.quantity, 0),
+        });
+        setQuoteAmount(quote.amount);
+        setQuoteEstimate(quote.estimate);
+        setDeliveryError("");
+      } catch {
+        setQuoteAmount(delivery === "address" ? 4.2 : 3.1);
+        setQuoteEstimate(true);
+        setDeliveryError(t["checkout.deliveryError"]);
+      }
+    }
+
+    void loadQuote();
+  }, [provider, delivery, officeCity, selectedOfficeId, selectedOffice?.postcode, subtotal, cartLines, t]);
 
   function applyDiscountCode() {
     const code = discountInput.trim().toUpperCase();
@@ -55,10 +175,20 @@ export default function Checkout({
         <div className="provider-card">
           <span>{t["checkout.provider"]}</span>
           <strong>Stripe Checkout / Payment Element</strong>
+          <small>{t["checkout.deliveryEstimateNote"]}</small>
         </div>
       </div>
       <div className="checkout-panel">
-        <CartSummary lang={lang} cartLines={cartLines} subtotal={subtotal} total={checkoutTotal} onRemove={onRemove} t={t} />
+        <CartSummary
+          lang={lang}
+          cartLines={cartLines}
+          subtotal={subtotal}
+          deliveryTotal={checkoutDelivery}
+          total={checkoutTotal}
+          provider={provider}
+          onRemove={onRemove}
+          t={t}
+        />
         <form className="payment-form" onSubmit={onSubmit}>
           <CheckoutStep title={t["checkout.deliveryStep"]}>
             <div className="choice-grid">
@@ -73,6 +203,20 @@ export default function Checkout({
                 title={t["checkout.officeDelivery"]}
                 text={t["checkout.officeDeliveryText"]}
                 onSelect={() => setDelivery("office")}
+              />
+            </div>
+            <div className="choice-grid courier-provider-grid">
+              <ChoiceCard
+                checked={provider === "speedy"}
+                title={t["checkout.speedy"]}
+                text={t["checkout.deliveryQuote"]}
+                onSelect={() => setProvider("speedy")}
+              />
+              <ChoiceCard
+                checked={provider === "econt"}
+                title={t["checkout.econt"]}
+                text={t["checkout.deliveryQuote"]}
+                onSelect={() => setProvider("econt")}
               />
             </div>
             {delivery === "address" ? (
@@ -96,20 +240,54 @@ export default function Checkout({
               </div>
             ) : (
               <div className="payment-grid">
+                <label>
+                  <span>{t["checkout.officeCity"]}</span>
+                  <select
+                    value={officeCity}
+                    onChange={(event) => setOfficeCity(event.target.value)}
+                    disabled={loadingCities || officeCities.length === 0}
+                    required
+                  >
+                    <option value="">
+                      {loadingCities ? t["checkout.loadingCities"] : t["checkout.noCities"]}
+                    </option>
+                    {officeCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <label className="wide-field">
                   <span>{t["checkout.fullName"]}</span>
                   <input placeholder="ICONIC CUSTOMER" required />
                 </label>
                 <label className="wide-field">
                   <span>{t["checkout.courierOffice"]}</span>
-                  <select required defaultValue="speedy-center">
-                    <option value="speedy-center">Speedy - Sofia Center</option>
-                    <option value="econt-mall">Econt - Paradise Center</option>
-                    <option value="econt-station">Econt - Central Station</option>
+                  <select
+                    required
+                    value={selectedOfficeId}
+                    onChange={(event) => setSelectedOfficeId(event.target.value)}
+                  >
+                    <option value="">{loadingOffices ? t["checkout.loadingOffices"] : t["checkout.noOffices"]}</option>
+                    {offices.map((office) => (
+                      <option key={office.id} value={office.id}>
+                        {office.provider === "speedy" ? t["checkout.speedy"] : t["checkout.econt"]} - {office.label}, {office.address}
+                      </option>
+                    ))}
                   </select>
                 </label>
+                <OfficeMap city={officeCity} provider={provider} selectedOffice={selectedOffice} t={t} />
               </div>
             )}
+            <div className="delivery-quote-card">
+              <span>{quoteEstimate ? t["checkout.deliveryEstimate"] : t["checkout.deliveryLive"]}</span>
+              <strong>
+                {t["checkout.deliveryQuote"]}: {formatPrice(checkoutDelivery)}
+              </strong>
+              {deliveryError ? <small className="is-error">{deliveryError}</small> : null}
+              {delivery === "office" && courierDataSource === "fallback" && !deliveryError ? <small>{t["checkout.demoCourierData"]}</small> : null}
+            </div>
           </CheckoutStep>
 
           <CheckoutStep title={t["checkout.paymentStep"]}>
@@ -224,18 +402,74 @@ function TotalLine({ label, value, strong = false }: { label: string; value: str
   );
 }
 
+function OfficeMap({
+  city,
+  provider,
+  selectedOffice,
+  t,
+}: {
+  city: string;
+  provider: CourierProvider;
+  selectedOffice: CourierOffice | null;
+  t: Record<string, string>;
+}) {
+  const providerLabel = t[provider === "speedy" ? "checkout.speedy" : "checkout.econt"];
+  const mapQuery = selectedOffice
+    ? `${providerLabel} ${selectedOffice.label} ${selectedOffice.address} ${selectedOffice.city} Bulgaria`
+    : `${providerLabel} offices ${city || "Bulgaria"}`;
+  const encodedMapQuery = encodeURIComponent(mapQuery);
+  const googleMapUrl = `https://maps.google.com/maps?q=${encodedMapQuery}&output=embed`;
+  const googleMapLink = `https://www.google.com/maps/search/?api=1&query=${encodedMapQuery}`;
+
+  return (
+    <div className="office-map-card wide-field">
+      <div className="office-map-head">
+        <span>{t["checkout.officeMap"]}</span>
+        <strong>{selectedOffice ? selectedOffice.label : `${providerLabel} · ${city || t["checkout.noCities"]}`}</strong>
+      </div>
+      <iframe
+        className="office-map"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        src={googleMapUrl}
+        title={t["checkout.officeMap"]}
+      />
+      <div className="office-map-details">
+        {selectedOffice ? (
+          <>
+            <strong>{selectedOffice.address}</strong>
+            <span>
+              {selectedOffice.city}
+              {selectedOffice.postcode ? ` · ${selectedOffice.postcode}` : ""}
+            </span>
+          </>
+        ) : (
+          <span>{t["checkout.noOffices"]}</span>
+        )}
+        <a href={googleMapLink} rel="noreferrer" target="_blank">
+          {t["checkout.openGoogleMap"]}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function CartSummary({
   lang,
   cartLines,
   subtotal,
+  deliveryTotal,
   total,
+  provider,
   onRemove,
   t,
 }: {
   lang: Lang;
   cartLines: Array<CartItem & { product: Product }>;
   subtotal: number;
+  deliveryTotal: number;
   total: number;
+  provider: CourierProvider;
   onRemove: (productId: string, size: string) => void;
   t: Record<string, string>;
 }) {
@@ -274,7 +508,11 @@ function CartSummary({
         </div>
         <div>
           <span>{t["cart.delivery"]}</span>
-          <strong>{subtotal > 0 ? formatPrice(deliveryPrice) : formatPrice(0)}</strong>
+          <strong>{subtotal > 0 ? formatPrice(deliveryTotal) : formatPrice(0)}</strong>
+        </div>
+        <div>
+          <span>{t["checkout.courierProvider"]}</span>
+          <strong>{t[provider === "speedy" ? "checkout.speedy" : "checkout.econt"]}</strong>
         </div>
         <div className="grand-total">
           <span>{t["cart.total"]}</span>

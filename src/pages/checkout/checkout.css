@@ -42,6 +42,13 @@
   font-size: 1.2rem;
 }
 
+.provider-card small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .checkout-panel {
   display: grid;
   gap: 16px;
@@ -154,6 +161,10 @@
   gap: 12px;
 }
 
+.courier-provider-grid {
+  margin-top: 4px;
+}
+
 .choice-card {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -244,6 +255,87 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.delivery-quote-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: rgba(238, 228, 213, 0.56);
+}
+
+.delivery-quote-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.delivery-quote-card strong {
+  font-size: 1rem;
+}
+
+.delivery-quote-card small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.delivery-quote-card small.is-error {
+  color: var(--clay);
+}
+
+.office-map-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.82);
+}
+
+.office-map-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.office-map-head span,
+.office-map-details span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.office-map-head strong {
+  max-width: 58%;
+  text-align: right;
+}
+
+.office-map {
+  display: block;
+  min-height: 220px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #efe3d0;
+}
+
+.office-map-details {
+  display: grid;
+  gap: 5px;
+  min-height: 46px;
+}
+
+.office-map-details a {
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-decoration: underline;
+  text-transform: uppercase;
 }
 
 .form-note {

@@ -27,18 +27,18 @@ export default function AdminPanel({
   const cardCount = adminOrders.filter((order) => order.payment === "Card").length;
   const codCount = adminOrders.filter((order) => order.payment === "Cash on delivery").length;
   const completedStatusData: Array<{ label: string; value: number; tone: "sand" | "moss" | "clay" }> = [
-    { label: "Delivered", value: completedOrders.length, tone: "sand" },
-    { label: "Card", value: completedOrders.filter((order) => order.payment === "Card").length, tone: "moss" },
+    { label: t["admin.statusDelivered"], value: completedOrders.length, tone: "sand" },
+    { label: t["admin.paymentCardShort"], value: completedOrders.filter((order) => order.payment === "Card").length, tone: "moss" },
     {
-      label: "Cash on delivery",
+      label: t["admin.paymentCash"],
       value: completedOrders.filter((order) => order.payment === "Cash on delivery").length,
       tone: "clay",
     },
   ];
   const activeStatusData: Array<{ label: string; value: number; tone: "sand" | "moss" | "clay" }> = [
-    { label: "Processing", value: adminOrders.filter((order) => order.status === "Processing").length, tone: "sand" },
-    { label: "In transit", value: adminOrders.filter((order) => order.status === "In transit").length, tone: "moss" },
-    { label: "Cancelled", value: adminOrders.filter((order) => order.status === "Cancelled").length, tone: "clay" },
+    { label: t["admin.statusProcessing"], value: adminOrders.filter((order) => order.status === "Processing").length, tone: "sand" },
+    { label: t["admin.statusInTransit"], value: adminOrders.filter((order) => order.status === "In transit").length, tone: "moss" },
+    { label: t["admin.statusCancelled"], value: adminOrders.filter((order) => order.status === "Cancelled").length, tone: "clay" },
   ];
   const inTransitOrders = adminOrders.filter((order) => order.status === "In transit");
 
@@ -133,17 +133,17 @@ export default function AdminPanel({
                     <div className="section-label">{t["admin.completed"]}</div>
                     <h3>{`BGN ${completedRevenueBgn.toFixed(2)}`}</h3>
                   </div>
-                  <StatChip label="Delivered" value={String(completedOrders.length)} />
+                  <StatChip label={t["admin.statusDelivered"]} value={String(completedOrders.length)} />
                 </div>
                 <div className="chart-panel-grid">
-                  <StatusBarChart title="Completed orders" data={completedStatusData} />
+                  <StatusBarChart title={t["admin.completedOrders"]} data={completedStatusData} />
                   <MetricList
-                    title="Completed split"
+                    title={t["admin.completedSplit"]}
                     items={[
-                      { label: "To address", value: String(completedOrders.filter((o) => o.deliveryMethod === "Address").length) },
-                      { label: "To office", value: String(completedOrders.filter((o) => o.deliveryMethod === "Office").length) },
-                      { label: "Paid by card", value: String(completedOrders.filter((o) => o.payment === "Card").length) },
-                      { label: "Cash on delivery", value: String(completedOrders.filter((o) => o.payment === "Cash on delivery").length) },
+                      { label: t["admin.channelAddress"], value: String(completedOrders.filter((o) => o.deliveryMethod === "Address").length) },
+                      { label: t["admin.channelOffice"], value: String(completedOrders.filter((o) => o.deliveryMethod === "Office").length) },
+                      { label: t["admin.paymentCard"], value: String(completedOrders.filter((o) => o.payment === "Card").length) },
+                      { label: t["admin.paymentCash"], value: String(completedOrders.filter((o) => o.payment === "Cash on delivery").length) },
                     ]}
                   />
                 </div>
@@ -158,14 +158,14 @@ export default function AdminPanel({
                   <StatChip label={t["admin.openOrders"]} value={String(activeOrders.length)} />
                 </div>
                 <div className="chart-panel-grid">
-                  <StatusBarChart title="Open order stages" data={activeStatusData} />
+                  <StatusBarChart title={t["admin.openOrderStages"]} data={activeStatusData} />
                   <MetricList
-                    title="Current queue"
+                    title={t["admin.currentQueue"]}
                     items={[
-                      { label: "Processing", value: String(activeStatusData[0].value) },
-                      { label: "In transit", value: String(activeStatusData[1].value) },
-                      { label: "Cancelled", value: String(activeStatusData[2].value) },
-                      { label: "Ready to watch", value: String(inTransitOrders.length + activeStatusData[0].value) },
+                      { label: t["admin.statusProcessing"], value: String(activeStatusData[0].value) },
+                      { label: t["admin.statusInTransit"], value: String(activeStatusData[1].value) },
+                      { label: t["admin.statusCancelled"], value: String(activeStatusData[2].value) },
+                      { label: t["admin.readyToWatch"], value: String(inTransitOrders.length + activeStatusData[0].value) },
                     ]}
                   />
                 </div>
@@ -178,13 +178,13 @@ export default function AdminPanel({
               <div className="card-head">
                 <div>
                   <div className="section-label">{t["admin.stock"]}</div>
-                  <h3>Size balance</h3>
+                  <h3>{t["admin.sizeBalance"]}</h3>
                 </div>
                 <StatChip label={t["admin.totalStock"]} value={String(totalStock)} />
               </div>
               <DataTable
                 className="stock-table"
-                columns={["Product", "Category", "XS", "S", "M", "L", "XL", "Total"]}
+                columns={[t["admin.product"], t["admin.category"], "XS", "S", "M", "L", "XL", t["admin.total"]]}
                 rows={adminStock.map((item) => [
                   item.product,
                   item.category,
@@ -204,19 +204,27 @@ export default function AdminPanel({
               <div className="card-head">
                 <div>
                   <div className="section-label">{t["admin.statusBoard"]}</div>
-                  <h3>Order ledger</h3>
+                  <h3>{t["admin.orderLedger"]}</h3>
                 </div>
               </div>
               <DataTable
                 className="orders-table"
-                columns={["Order", "Customer", "Items", "Total", "Payment", "Status", "Date"]}
+                columns={[
+                  t["admin.order"],
+                  t["admin.customer"],
+                  t["admin.orderItems"],
+                  t["admin.total"],
+                  t["admin.payment"],
+                  t["admin.status"],
+                  t["admin.date"],
+                ]}
                 rows={adminOrders.map((order) => [
                   order.order,
                   order.customer,
                   order.items,
                   order.totalBgn,
-                  order.payment,
-                  order.status,
+                  getPaymentLabel(order.payment, t),
+                  getStatusLabel(order.status, t),
                   order.date,
                 ])}
               />
@@ -228,30 +236,30 @@ export default function AdminPanel({
               <div className="card-head">
                 <div>
                   <div className="section-label">{t["admin.delivery"]}</div>
-                  <h3>Fulfilment flow</h3>
+                  <h3>{t["admin.fulfilmentFlow"]}</h3>
                 </div>
               </div>
               <div className="delivery-admin-grid">
                 <InfoPanel
-                  title="By delivery method"
+                  title={t["admin.deliveryMethodTitle"]}
                   rows={[
-                    { label: "Door delivery", value: `${deliveryAddressCount} orders` },
-                    { label: "Courier office", value: `${deliveryOfficeCount} orders` },
+                    { label: t["admin.doorDelivery"], value: t["admin.ordersCount"].replace("{count}", String(deliveryAddressCount)) },
+                    { label: t["admin.courierOffice"], value: t["admin.ordersCount"].replace("{count}", String(deliveryOfficeCount)) },
                   ]}
                 />
                 <InfoPanel
-                  title="Payment mix"
+                  title={t["admin.paymentMix"]}
                   rows={[
-                    { label: "Paid by card", value: String(cardCount) },
-                    { label: "Cash on delivery", value: String(codCount) },
+                    { label: t["admin.paymentCard"], value: String(cardCount) },
+                    { label: t["admin.paymentCash"], value: String(codCount) },
                   ]}
                 />
                 <InfoPanel
                   className="wide-panel"
-                  title="In-transit shipments"
+                  title={t["admin.inTransitShipments"]}
                   rows={inTransitOrders.map((order) => ({
                     label: `${order.order} · ${order.customer}`,
-                    value: order.deliveryMethod,
+                    value: order.deliveryMethod === "Address" ? t["admin.channelAddress"] : t["admin.channelOffice"],
                   }))}
                 />
               </div>
@@ -263,7 +271,7 @@ export default function AdminPanel({
               <div className="card-head">
                 <div>
                   <div className="section-label">{t["admin.reviews"]}</div>
-                  <h3>Customer notes</h3>
+                  <h3>{t["admin.customerNotes"]}</h3>
                 </div>
                 <StatChip label={t["admin.avgRating"]} value={averageRating} />
               </div>
@@ -279,7 +287,7 @@ export default function AdminPanel({
                     </div>
                     <div className="review-meta">
                       <span>{review.product}</span>
-                      {review.flagged ? <strong className="review-flag">FLAGGED</strong> : null}
+                      {review.flagged ? <strong className="review-flag">{t["admin.flagged"]}</strong> : null}
                     </div>
                     <p>{review.comment}</p>
                   </article>
@@ -291,6 +299,18 @@ export default function AdminPanel({
       </div>
     </section>
   );
+}
+
+function getPaymentLabel(payment: string, t: Record<string, string>) {
+  return payment === "Card" ? t["admin.paymentCardShort"] : t["admin.paymentCash"];
+}
+
+function getStatusLabel(status: string, t: Record<string, string>) {
+  if (status === "Delivered") return t["admin.statusDelivered"];
+  if (status === "In transit") return t["admin.statusInTransit"];
+  if (status === "Processing") return t["admin.statusProcessing"];
+  if (status === "Cancelled") return t["admin.statusCancelled"];
+  return status;
 }
 
 function AttentionCard({ title, text, items }: { title: string; text: string; items: string[] }) {

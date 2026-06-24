@@ -227,6 +227,15 @@
     gap: 16px;
   }
 
+  .office-map-head {
+    display: grid;
+  }
+
+  .office-map-head strong {
+    max-width: 100%;
+    text-align: left;
+  }
+
   .card-head {
     flex-direction: column;
     align-items: start;
