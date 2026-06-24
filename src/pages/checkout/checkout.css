@@ -1,0 +1,252 @@
+.checkout-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(420px, 1fr);
+  gap: clamp(32px, 7vw, 86px);
+  align-items: start;
+  min-height: calc(100vh - 76px);
+  padding: clamp(76px, 10vw, 132px) clamp(18px, 5vw, 60px);
+  background: linear-gradient(180deg, var(--soft), #e4d4bc);
+}
+
+.checkout-copy,
+.checkout-panel {
+  max-width: 620px;
+}
+
+.checkout-copy .section-label {
+  margin: 20px 0 16px;
+}
+
+.checkout-copy p {
+  margin-top: 22px;
+}
+
+.provider-card {
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.provider-card span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.provider-card strong {
+  font-size: 1.2rem;
+}
+
+.checkout-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.cart-summary,
+.payment-form {
+  border: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.cart-summary {
+  padding: 22px;
+}
+
+.cart-lines {
+  display: grid;
+  gap: 14px;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cart-thumb {
+  width: 72px;
+  height: 88px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--soft);
+}
+
+.cart-line span,
+.cart-line button {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.cart-line button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.totals {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.grand-total {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 1.18rem;
+}
+
+.payment-form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.payment-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.payment-form label span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.payment-form input,
+.payment-form select {
+  min-height: 50px;
+  width: 100%;
+  border: 1px solid var(--line);
+  padding: 0 14px;
+  background: #fffaf2;
+  outline: none;
+}
+
+.checkout-step {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.choice-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  min-height: 94px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 250, 242, 0.72);
+  cursor: pointer;
+}
+
+.choice-card.is-selected {
+  border-color: var(--black);
+  background: var(--soft);
+  box-shadow: inset 0 0 0 1px var(--black);
+}
+
+.choice-card input {
+  width: 16px;
+  min-height: 16px;
+  margin-top: 2px;
+  accent-color: var(--black);
+}
+
+.choice-card span {
+  display: grid;
+  gap: 6px;
+}
+
+.choice-card strong {
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+
+.choice-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.discount-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.form-note.is-success {
+  color: var(--moss);
+}
+
+.form-note.is-error {
+  color: var(--clay);
+}
+
+.checkout-total-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(238, 228, 213, 0.72);
+}
+
+.checkout-total-card h3 {
+  margin-bottom: 4px;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.total-line.is-strong {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 1.08rem;
+}
+
+.payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-note {
+  min-height: 26px;
+  font-size: 0.86rem;
+}

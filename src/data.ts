@@ -7,6 +7,7 @@ export type Product = {
   price: number;
   gallery: string[];
   sizes: string[];
+  sizeStock: Record<string, number>;
   stock: number;
   details: string[];
   care: string[];
@@ -117,9 +118,18 @@ export const dictionaries: Record<Lang, Dictionary> = {
     "collection.title": "Първа линия: чисти форми за топли дни.",
     "collection.text":
       "Избери продукт за детайлна страница с размери, материя, грижа и опция за добавяне в количката.",
+    "home.summer.label": "Лятна колекция",
+    "home.summer.title": "Леки материи, чисти линии, готови за топли дни.",
+    "home.summer.text":
+      "Селекция от първия drop с риза, панталон и тениска, които могат да работят заедно или самостоятелно.",
+    "home.best.label": "Най-продавани",
+    "home.best.title": "Двата модела, които носят най-много дневен ритъм.",
+    "home.best.text":
+      "Комфортният панталон и relaxed ризата са основата на гардероба: лесни за комбиниране, с ограничени количества.",
     "product.view": "Детайли",
     "product.add": "Добави",
     "product.image": "Снимка на продукт",
+    "page.back": "Обратно към началото",
     "detail.back": "Назад към колекцията",
     "detail.size": "Размер",
     "detail.fit": "Кройка",
@@ -220,6 +230,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
     "admin.totalOrders": "Общо поръчки",
     "admin.revenue": "Оборот",
     "admin.items": "Артикули",
+    "admin.addItem": "Добави продукт",
     "admin.empty": "Няма поръчки в тази секция.",
     "footer.kicker": "G-TOWN",
     "footer.text": "Сезонен лен, кроен и завършен в G-Town. Една материя, носена добре.",
@@ -270,9 +281,18 @@ export const dictionaries: Record<Lang, Dictionary> = {
     "collection.title": "First line: clean forms for warm days.",
     "collection.text":
       "Open a product page for sizing, fabric, care information, and an add-to-cart flow.",
+    "home.summer.label": "Summer Collection",
+    "home.summer.title": "Light fabrics, clean lines, ready for warm days.",
+    "home.summer.text":
+      "A first-drop selection with a shirt, trouser, and tee that work together or on their own.",
+    "home.best.label": "Best Sellers",
+    "home.best.title": "The two pieces carrying the most daily rhythm.",
+    "home.best.text":
+      "The easy trouser and relaxed shirt are the wardrobe anchors: simple to style, produced in limited quantities.",
     "product.view": "Details",
     "product.add": "Add",
     "product.image": "Product image",
+    "page.back": "Back to home",
     "detail.back": "Back to collection",
     "detail.size": "Size",
     "detail.fit": "Fit",
@@ -373,6 +393,7 @@ export const dictionaries: Record<Lang, Dictionary> = {
     "admin.totalOrders": "Total orders",
     "admin.revenue": "Revenue",
     "admin.items": "Items",
+    "admin.addItem": "Add collection item",
     "admin.empty": "No orders in this section.",
     "footer.kicker": "G-TOWN",
     "footer.text": "Seasonal linen, cut and finished in G-Town. One fabric, worn well.",
@@ -408,6 +429,7 @@ export const products: Product[] = [
       "https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=1100&q=80",
     ],
     sizes: ["S", "M", "L", "XL"],
+    sizeStock: { S: 5, M: 3, L: 6, XL: 4 },
     stock: 18,
     details: ["limited", "hand-cut", "gift"],
     care: ["wash30", "airDry", "ironLow"],
@@ -445,6 +467,7 @@ export const products: Product[] = [
       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1100&q=80",
     ],
     sizes: ["S", "M", "L"],
+    sizeStock: { S: 2, M: 6, L: 4 },
     stock: 12,
     details: ["limited", "comfort", "city"],
     care: ["wash30", "airDry", "steam"],
@@ -482,6 +505,7 @@ export const products: Product[] = [
       "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1100&q=80",
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
+    sizeStock: { XS: 4, S: 8, M: 7, L: 3, XL: 2 },
     stock: 24,
     details: ["essential", "soft", "layer"],
     care: ["wash30", "insideOut", "airDry"],

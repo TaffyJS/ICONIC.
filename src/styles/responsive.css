@@ -1,0 +1,255 @@
+@media (max-width: 1000px) {
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .header-actions {
+    width: auto;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .hero,
+  .two-column,
+  .section-heading,
+  .showcase-heading,
+  .content-hero,
+  .content-product,
+  .contact-layout,
+  .product-detail,
+  .standard-section,
+  .checkout-section,
+  .admin-topbar,
+  .admin-create-layout,
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: auto;
+  }
+
+  .hero-visual {
+    gap: 12px;
+  }
+
+  .hero-card {
+    padding: 18px;
+  }
+
+  .hero-card strong {
+    max-width: 100%;
+  }
+
+  .metrics,
+  .showcase-grid,
+  .content-grid,
+  .content-stats,
+  .gift-grid,
+  .journal-grid,
+  .collection-grid,
+  .related-grid,
+  .site-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-pill-row,
+  .admin-overview-row,
+  .admin-form-grid,
+  .size-stock-grid,
+  .attention-grid,
+  .chart-panel-grid,
+  .delivery-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .product-detail {
+    grid-template-areas:
+      "intro"
+      "gallery"
+      "body";
+  }
+
+  .metrics div:nth-child(3) {
+    border-left: 1px solid var(--line);
+  }
+
+  .standard-visual {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 700px) {
+  .site-header {
+    min-height: 68px;
+    padding-inline: 14px;
+  }
+
+  .brand img {
+    width: 106px;
+  }
+
+  .cart-pill span {
+    display: none;
+  }
+
+  .cart-pill {
+    width: 48px;
+    padding: 0;
+  }
+
+  .language-switch {
+    grid-template-columns: repeat(2, 38px);
+  }
+
+  .lang-button {
+    min-height: 38px;
+  }
+
+  h1 {
+    max-width: 100%;
+    font-size: clamp(3.1rem, 12vw, 5rem);
+  }
+
+  h2 {
+    font-size: clamp(2.1rem, 11vw, 3.6rem);
+  }
+
+  .hero-card strong {
+    font-size: 1rem;
+  }
+
+  .hero-actions,
+  .card-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .button,
+  .detail-add {
+    width: 100%;
+  }
+
+  .metrics,
+  .showcase-grid,
+  .featured-grid,
+  .content-grid,
+  .content-stats,
+  .gift-grid,
+  .journal-grid,
+  .collection-grid,
+  .related-grid,
+  .site-footer,
+  .footer-links,
+  .detail-specs,
+  .detail-lists,
+  .payment-grid,
+  .choice-grid,
+  .discount-row,
+  .admin-pill-row,
+  .admin-overview-row,
+  .admin-form-grid,
+  .size-stock-grid,
+  .attention-grid,
+  .chart-panel-grid,
+  .delivery-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-head,
+  .review-meta {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .metrics {
+    padding-inline: 18px;
+  }
+
+  .metrics div,
+  .metrics div:nth-child(3) {
+    border-left: 1px solid var(--line);
+  }
+
+  .collection-card {
+    min-height: 450px;
+  }
+
+  .garment,
+  .product-visual-button {
+    min-height: 270px;
+  }
+
+  .gallery-main img {
+    height: clamp(380px, 92vw, 500px);
+  }
+
+  .detail-title-row,
+  .cart-line,
+  .related-card,
+  .content-product,
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .content-timeline article {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .showcase-card img,
+  .content-hero img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .related-visual {
+    min-height: 230px;
+  }
+
+  .admin-dashboard {
+    background:
+      linear-gradient(135deg, rgba(110, 47, 36, 0.18), transparent 34%),
+      radial-gradient(circle at top right, rgba(185, 154, 95, 0.14), transparent 28%),
+      #121512;
+  }
+
+  .admin-topbar,
+  .card-head {
+    gap: 16px;
+  }
+
+  .card-head {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .chart-legend {
+    justify-content: start;
+  }
+
+  .admin-layout {
+    padding-inline: 18px;
+  }
+
+  .admin-create-layout {
+    padding-inline: 18px;
+  }
+
+  .upload-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-submit-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
