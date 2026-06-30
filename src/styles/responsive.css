@@ -11,6 +11,14 @@
     display: none;
   }
 
+  .menu-action {
+    display: inline-flex;
+  }
+
+  .icon-action {
+    display: none;
+  }
+
   .hero,
   .two-column,
   .section-heading,
@@ -21,6 +29,7 @@
   .product-detail,
   .standard-section,
   .checkout-section,
+  .checkout-panel,
   .admin-topbar,
   .admin-create-layout,
   .admin-layout {
@@ -28,14 +37,14 @@
   }
 
   .hero {
-    min-height: auto;
-  }
-
-  .hero-visual {
-    gap: 12px;
+    min-height: calc(88vh - 68px);
   }
 
   .hero-card {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: 34px;
     padding: 18px;
   }
 
@@ -45,6 +54,9 @@
 
   .metrics,
   .showcase-grid,
+  .premium-product-grid,
+  .category-grid,
+  .commitment-section > div,
   .content-grid,
   .content-stats,
   .gift-grid,
@@ -53,6 +65,15 @@
   .related-grid,
   .site-footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editorial-band,
+  .craft-section {
+    grid-template-columns: 1fr;
+  }
+
+  .editorial-band figure {
+    display: none;
   }
 
   .footer-links {
@@ -78,6 +99,10 @@
       "intro"
       "gallery"
       "body";
+  }
+
+  .cart-summary {
+    position: static;
   }
 
   .metrics div:nth-child(3) {
@@ -143,6 +168,11 @@
   .metrics,
   .showcase-grid,
   .featured-grid,
+  .premium-product-grid,
+  .best-seller-grid,
+  .all-products-grid,
+  .category-grid,
+  .commitment-section > div,
   .content-grid,
   .content-stats,
   .gift-grid,
@@ -155,6 +185,7 @@
   .detail-lists,
   .payment-grid,
   .choice-grid,
+  .checkout-stepper,
   .discount-row,
   .admin-pill-row,
   .admin-overview-row,
@@ -192,6 +223,46 @@
 
   .gallery-main img {
     height: clamp(380px, 92vw, 500px);
+  }
+
+  .product-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-thumbs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    order: 2;
+  }
+
+  .gallery-main {
+    order: 1;
+  }
+
+  .premium-heading {
+    display: grid;
+    align-items: start;
+  }
+
+  .category-card {
+    min-height: 310px;
+  }
+
+  .premium-product-image > button:last-child {
+    transform: translateY(0);
+  }
+
+  .craft-image-stack img:last-child {
+    right: 14px;
+    bottom: 14px;
+    width: 118px;
+  }
+
+  .site-header.is-transparent {
+    min-height: 74px;
+  }
+
+  .brand img {
+    width: 112px;
   }
 
   .detail-title-row,

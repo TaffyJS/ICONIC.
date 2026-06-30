@@ -1,6 +1,8 @@
 export type CartItem = {
   productId: string;
   size: string;
+  colorName: string;
+  colorHex: string;
   quantity: number;
 };
 

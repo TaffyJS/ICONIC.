@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { dictionaries, type Product } from "./data";
+import { dictionaries, type Product, type ProductColor } from "./data";
 import { CartToast } from "./components/feedback/CartToast";
 import { Footer } from "./components/layout/Footer";
 import { Header } from "./components/layout/Header";
@@ -40,13 +40,13 @@ export default function App() {
     window.location.hash = `/product/${product.id}`;
   }
 
-  function addToCart(product: Product, size = product.sizes[0]) {
+  function addToCart(product: Product, size = product.sizes[0], color: ProductColor = product.colors[0]) {
     setPaymentStatus("");
     setCartPulse(true);
     setCartNotice(product.translations[lang].name);
     window.setTimeout(() => setCartPulse(false), 650);
     window.setTimeout(() => setCartNotice(""), 1800);
-    addItemToCart(product, size);
+    addItemToCart(product, size, color);
   }
 
   function submitPayment(event: React.FormEvent<HTMLFormElement>) {
@@ -75,7 +75,7 @@ export default function App() {
 
   return (
     <>
-      <Header lang={lang} setLang={changeLanguage} cartCount={cart.length} cartPulse={cartPulse} t={t} />
+      <Header lang={lang} setLang={changeLanguage} cartCount={cart.length} cartPulse={cartPulse} products={products} route={route} t={t} />
       <CartToast productName={cartNotice} t={t} />
       <main>
         {route.name === "home" && (

@@ -4,7 +4,6 @@ import { createCommerceRepository } from "../repositories/commerceRepository.js"
 
 export function seedDatabase(db: DbClient) {
   const commerceRepository = createCommerceRepository(db);
-  if (commerceRepository.hasProducts()) return;
 
   db.transaction(() => {
     for (const product of seedProducts) {

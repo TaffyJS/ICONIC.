@@ -20,6 +20,7 @@ type ProductRow = {
   color_class: string;
   garment_class: string;
   price: number;
+  colors_json: string;
   stock: number;
   sort_order: number;
   details_json: string;
@@ -145,6 +146,7 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
       colorClass: row.color_class,
       garmentClass: row.garment_class,
       price: row.price,
+      colors: parseColors(row.colors_json, row.color_class),
       gallery: images.map((image) => image.url),
       images: images.map(mapImage),
       sizes: variants.map((variant) => variant.size),
@@ -198,12 +200,13 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
     upsertProduct(product) {
       db.run(
         `
-          INSERT INTO products (id, color_class, garment_class, price, stock, sort_order, details_json, care_json)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO products (id, color_class, garment_class, price, colors_json, stock, sort_order, details_json, care_json)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             color_class = excluded.color_class,
             garment_class = excluded.garment_class,
             price = excluded.price,
+            colors_json = excluded.colors_json,
             stock = excluded.stock,
             sort_order = excluded.sort_order,
             details_json = excluded.details_json,
@@ -215,6 +218,7 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
           product.colorClass,
           product.garmentClass,
           product.price,
+          JSON.stringify(product.colors),
           product.stock,
           product.sortOrder ?? 0,
           JSON.stringify(product.details),
@@ -341,6 +345,7 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
           colorClass: getToneClass(input.color),
           garmentClass: getGarmentClass(input.category, input.name),
           price: input.price,
+          colors: [{ name: input.color, hex: getToneHex(input.color) }],
           gallery: input.imageUrls,
           images: [],
           sizes: input.sizes,
@@ -349,7 +354,7 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
           details: input.details,
           care: input.care,
           translations: {
-            bg: {
+            bg: input.translations?.bg ?? {
               name: input.name,
               category: input.category,
               short: input.short,
@@ -358,7 +363,7 @@ export function createCommerceRepository(db: DbClient): CommerceRepository {
               material: input.material,
               badge: input.badge,
             },
-            en: {
+            en: input.translations?.en ?? {
               name: input.name,
               category: input.category,
               short: input.short,
@@ -627,6 +632,20 @@ function mapTranslation(translation?: TranslationRow): ProductTranslation {
   };
 }
 
+function parseColors(value: string, colorClass: string) {
+  try {
+    const parsed = JSON.parse(value) as Array<{ name?: unknown; hex?: unknown }>;
+    const colors = parsed
+      .filter((color) => typeof color.name === "string" && typeof color.hex === "string")
+      .map((color) => ({ name: String(color.name), hex: String(color.hex) }));
+    if (colors.length > 0) return colors;
+  } catch {
+    // Fall back to a single swatch for products created before color options existed.
+  }
+
+  return [{ name: colorClass.replace(/^tone-/, ""), hex: getToneHex(colorClass) }];
+}
+
 function mapAdminStatus(status: OrderRecord["status"]): AdminOrderRecord["status"] {
   if (status === "completed") return "Delivered";
   if (status === "traveling" || status === "ready") return "In transit";
@@ -656,6 +675,16 @@ function getToneClass(color: string) {
   if (normalized.includes("green") || normalized.includes("moss")) return "tone-green";
   if (normalized.includes("clay") || normalized.includes("black") || normalized.includes("dark")) return "tone-clay";
   return "tone-cream";
+}
+
+function getToneHex(color: string) {
+  const normalized = color.toLowerCase();
+  if (normalized.includes("green") || normalized.includes("moss")) return "#2f5d4d";
+  if (normalized.includes("clay") || normalized.includes("coral") || normalized.includes("terra")) return "#c94e2a";
+  if (normalized.includes("black") || normalized.includes("dark")) return "#1c1510";
+  if (normalized.includes("sky") || normalized.includes("blue")) return "#a8d4d2";
+  if (normalized.includes("navy")) return "#1a2b5f";
+  return "#f2ede4";
 }
 
 function getGarmentClass(category: string, name: string) {

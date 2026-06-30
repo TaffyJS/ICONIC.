@@ -1,6 +1,6 @@
 .checkout-section {
   display: grid;
-  grid-template-columns: minmax(0, 0.78fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(280px, 0.48fr) minmax(560px, 1fr);
   gap: clamp(32px, 7vw, 86px);
   align-items: start;
   min-height: calc(100vh - 76px);
@@ -51,7 +51,9 @@
 
 .checkout-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
   gap: 16px;
+  max-width: 980px;
 }
 
 .cart-summary,
@@ -61,7 +63,11 @@
 }
 
 .cart-summary {
+  order: 2;
   padding: 22px;
+  align-self: start;
+  position: sticky;
+  top: 96px;
 }
 
 .cart-lines {
@@ -121,9 +127,55 @@
 }
 
 .payment-form {
+  order: 1;
   display: grid;
   gap: 14px;
   padding: 22px;
+}
+
+.checkout-stepper {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.checkout-stepper button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  padding: 12px;
+  background: rgba(255, 250, 242, 0.74);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.checkout-stepper button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.checkout-stepper button.is-active {
+  border-color: var(--black);
+  background: var(--black);
+  color: var(--white);
+}
+
+.checkout-stepper span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.72rem;
 }
 
 .payment-form label {
@@ -175,6 +227,11 @@
   border: 1px solid var(--line);
   background: rgba(255, 250, 242, 0.72);
   cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.choice-card:hover {
+  transform: translateY(-1px);
 }
 
 .choice-card.is-selected {
@@ -336,6 +393,10 @@
   font-weight: 900;
   text-decoration: underline;
   text-transform: uppercase;
+}
+
+.checkout-back-step {
+  justify-self: start;
 }
 
 .form-note {

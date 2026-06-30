@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { detailLabels, type Lang, type Product } from "../../data";
+import { detailLabels, type Lang, type Product, type ProductColor } from "../../data";
 import { formatPrice } from "../../utils/format";
 
 export default function ProductPage({
@@ -17,7 +17,7 @@ export default function ProductPage({
   products: Product[];
   selectedSize: string;
   setSelectedSize: (size: string) => void;
-  onAddToCart: (product: Product, size: string) => void;
+  onAddToCart: (product: Product, size: string, color?: ProductColor) => void;
   onOpenProduct: (product: Product) => void;
   t: Record<string, string>;
 }) {
@@ -38,7 +38,7 @@ export default function ProductPage({
         products={related}
         t={t}
         onOpenProduct={onOpenProduct}
-        onAddToCart={(item) => onAddToCart(item, item.sizes[0])}
+        onAddToCart={(item) => onAddToCart(item, item.sizes[0], item.colors[0])}
       />
     </>
   );
@@ -56,16 +56,18 @@ function ProductDetail({
   product: Product;
   selectedSize: string;
   setSelectedSize: (size: string) => void;
-  onAddToCart: (product: Product, size: string) => void;
+  onAddToCart: (product: Product, size: string, color?: ProductColor) => void;
   t: Record<string, string>;
 }) {
   const copy = product.translations[lang];
   const [activeImage, setActiveImage] = useState(0);
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const selectedSizeStock = product.sizeStock[selectedSize] ?? product.stock;
   const lowSizeStock = selectedSizeStock <= 3;
 
   useEffect(() => {
     setActiveImage(0);
+    setSelectedColor(product.colors[0]);
   }, [product.id]);
 
   function moveImage(direction: -1 | 1) {
@@ -88,15 +90,6 @@ function ProductDetail({
         <p className="lead compact">{copy.description}</p>
       </div>
       <div className="product-gallery" aria-label={t["product.image"]}>
-        <div className="gallery-main">
-          <img src={product.gallery[activeImage]} alt={`${copy.name} ${activeImage + 1}`} />
-          <button className="gallery-button gallery-prev" type="button" onClick={() => moveImage(-1)} aria-label={t["detail.previousImage"]}>
-            ‹
-          </button>
-          <button className="gallery-button gallery-next" type="button" onClick={() => moveImage(1)} aria-label={t["detail.nextImage"]}>
-            ›
-          </button>
-        </div>
         <div className="gallery-thumbs">
           {product.gallery.map((image, index) => (
             <button
@@ -110,6 +103,15 @@ function ProductDetail({
             </button>
           ))}
         </div>
+        <div className="gallery-main">
+          <img src={product.gallery[activeImage]} alt={`${copy.name} ${activeImage + 1}`} />
+          <button className="gallery-button gallery-prev" type="button" onClick={() => moveImage(-1)} aria-label={t["detail.previousImage"]}>
+            ‹
+          </button>
+          <button className="gallery-button gallery-next" type="button" onClick={() => moveImage(1)} aria-label={t["detail.nextImage"]}>
+            ›
+          </button>
+        </div>
       </div>
       <div className="detail-body">
         <div className="detail-specs">
@@ -120,6 +122,28 @@ function ProductDetail({
           <div>
             <span>{t["detail.material"]}</span>
             <strong>{copy.material}</strong>
+          </div>
+        </div>
+        <div className="color-selector">
+          <div className="size-label-row">
+            <div className="field-label">{t["detail.color"]}</div>
+            <span className="selected-color-name">{selectedColor?.name ?? t["detail.selectColor"]}</span>
+          </div>
+          <div className="color-swatch-grid" role="radiogroup" aria-label={t["detail.color"]}>
+            {product.colors.map((color) => (
+              <button
+                className={selectedColor?.name === color.name ? "is-selected" : ""}
+                key={color.name}
+                type="button"
+                title={color.name}
+                aria-label={color.name}
+                aria-checked={selectedColor?.name === color.name}
+                role="radio"
+                onClick={() => setSelectedColor(color)}
+              >
+                <span style={{ backgroundColor: color.hex }} />
+              </button>
+            ))}
           </div>
         </div>
         <div className="size-selector">
@@ -146,7 +170,7 @@ function ProductDetail({
           <InfoList title={t["detail.details"]} items={product.details.map((key) => detailLabels[lang][key] ?? key)} />
           <InfoList title={t["detail.care"]} items={product.care.map((key) => detailLabels[lang][key] ?? key)} />
         </div>
-        <button className="button button-dark detail-add" type="button" onClick={() => onAddToCart(product, selectedSize)}>
+        <button className="button button-dark detail-add" type="button" onClick={() => onAddToCart(product, selectedSize, selectedColor)}>
           {t["detail.add"]}
         </button>
       </div>
@@ -181,9 +205,14 @@ function RelatedProducts({
           return (
             <article className={`related-card ${product.colorClass}`} key={product.id}>
               <button className="related-visual" type="button" onClick={() => onOpenProduct(product)}>
-                <div className={`garment ${product.garmentClass}`} aria-hidden="true" />
+                {product.gallery[0] ? <img src={product.gallery[0]} alt={copy.name} /> : <div className={`garment ${product.garmentClass}`} aria-hidden="true" />}
               </button>
               <div className="related-copy">
+                <div className="product-swatches" aria-label={t["detail.color"]}>
+                  {product.colors.slice(0, 4).map((color) => (
+                    <span key={color.name} title={color.name} style={{ backgroundColor: color.hex }} />
+                  ))}
+                </div>
                 <span>{copy.category}</span>
                 <h3>{copy.name}</h3>
                 <p>{copy.short}</p>

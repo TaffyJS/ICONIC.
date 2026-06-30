@@ -17,13 +17,14 @@ export default function Checkout({
   lang: Lang;
   cartLines: Array<CartItem & { product: Product }>;
   subtotal: number;
-  onRemove: (productId: string, size: string) => void;
+  onRemove: (productId: string, size: string, colorName: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   paymentStatus: string;
   t: Record<string, string>;
 }) {
   const [delivery, setDelivery] = useState<"address" | "office">("address");
   const [payment, setPayment] = useState<"card" | "cash">("card");
+  const [checkoutStep, setCheckoutStep] = useState<"delivery" | "payment">("delivery");
   const [provider, setProvider] = useState<CourierProvider>("speedy");
   const [officeCity, setOfficeCity] = useState("");
   const [officeCities, setOfficeCities] = useState<string[]>([]);
@@ -190,159 +191,155 @@ export default function Checkout({
           t={t}
         />
         <form className="payment-form" onSubmit={onSubmit}>
-          <CheckoutStep title={t["checkout.deliveryStep"]}>
-            <div className="choice-grid">
-              <ChoiceCard
-                checked={delivery === "address"}
-                title={t["checkout.addressDelivery"]}
-                text={t["checkout.addressDeliveryText"]}
-                onSelect={() => setDelivery("address")}
-              />
-              <ChoiceCard
-                checked={delivery === "office"}
-                title={t["checkout.officeDelivery"]}
-                text={t["checkout.officeDeliveryText"]}
-                onSelect={() => setDelivery("office")}
-              />
-            </div>
-            <div className="choice-grid courier-provider-grid">
-              <ChoiceCard
-                checked={provider === "speedy"}
-                title={t["checkout.speedy"]}
-                text={t["checkout.deliveryQuote"]}
-                onSelect={() => setProvider("speedy")}
-              />
-              <ChoiceCard
-                checked={provider === "econt"}
-                title={t["checkout.econt"]}
-                text={t["checkout.deliveryQuote"]}
-                onSelect={() => setProvider("econt")}
-              />
-            </div>
-            {delivery === "address" ? (
-              <div className="payment-grid">
-                <label className="wide-field">
-                  <span>{t["checkout.fullName"]}</span>
-                  <input name="fullName" placeholder="ICONIC CUSTOMER" required />
-                </label>
-                <label className="wide-field">
-                  <span>{t["checkout.street"]}</span>
-                  <input name="street" placeholder="ul. Shipka 12" required />
-                </label>
-                <label>
-                  <span>{t["checkout.city"]}</span>
-                  <input name="city" placeholder="Sofia" required />
-                </label>
-                <label>
-                  <span>{t["checkout.postalCode"]}</span>
-                  <input name="postalCode" placeholder="1000" required />
-                </label>
-              </div>
-            ) : (
-              <div className="payment-grid">
-                <label>
-                  <span>{t["checkout.officeCity"]}</span>
-                  <select
-                    value={officeCity}
-                    onChange={(event) => setOfficeCity(event.target.value)}
-                    disabled={loadingCities || officeCities.length === 0}
-                    required
-                  >
-                    <option value="">
-                      {loadingCities ? t["checkout.loadingCities"] : t["checkout.noCities"]}
-                    </option>
-                    {officeCities.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="wide-field">
-                  <span>{t["checkout.fullName"]}</span>
-                  <input name="fullName" placeholder="ICONIC CUSTOMER" required />
-                </label>
-                <label className="wide-field">
-                  <span>{t["checkout.courierOffice"]}</span>
-                  <select
-                    required
-                    value={selectedOfficeId}
-                    onChange={(event) => setSelectedOfficeId(event.target.value)}
-                  >
-                    <option value="">{loadingOffices ? t["checkout.loadingOffices"] : t["checkout.noOffices"]}</option>
-                    {offices.map((office) => (
-                      <option key={office.id} value={office.id}>
-                        {office.provider === "speedy" ? t["checkout.speedy"] : t["checkout.econt"]} - {office.label}, {office.address}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <OfficeMap city={officeCity} provider={provider} selectedOffice={selectedOffice} t={t} />
-              </div>
-            )}
-            <div className="delivery-quote-card">
-              <span>{quoteEstimate ? t["checkout.deliveryEstimate"] : t["checkout.deliveryLive"]}</span>
-              <strong>
-                {t["checkout.deliveryQuote"]}: {formatPrice(checkoutDelivery)}
-              </strong>
-              {deliveryError ? <small className="is-error">{deliveryError}</small> : null}
-              {delivery === "office" && courierDataSource === "fallback" && !deliveryError ? <small>{t["checkout.demoCourierData"]}</small> : null}
-            </div>
-          </CheckoutStep>
+          <div className="checkout-stepper" aria-label={t["checkout.label"]}>
+            <button className={checkoutStep === "delivery" ? "is-active" : ""} type="button" onClick={() => setCheckoutStep("delivery")}>
+              <span>1</span>
+              {t["checkout.deliveryStep"].replace("1. ", "")}
+            </button>
+            <button className={checkoutStep === "payment" ? "is-active" : ""} type="button" onClick={() => setCheckoutStep("payment")} disabled={cartLines.length === 0}>
+              <span>2</span>
+              {t["checkout.paymentStep"].replace("2. ", "")}
+            </button>
+          </div>
 
-          <CheckoutStep title={t["checkout.paymentStep"]}>
-            <div className="choice-grid">
-              <ChoiceCard
-                checked={payment === "card"}
-                title={t["checkout.cardPayment"]}
-                text={t["checkout.cardPaymentText"]}
-                onSelect={() => setPayment("card")}
-              />
-              <ChoiceCard
-                checked={payment === "cash"}
-                title={t["checkout.cashPayment"]}
-                text={t["checkout.cashPaymentText"]}
-                onSelect={() => setPayment("cash")}
-              />
-            </div>
-            {payment === "card" && (
-              <div className="payment-grid">
-                <label className="wide-field">
-                  <span>{t["checkout.card"]}</span>
-                  <input inputMode="numeric" placeholder="4242 4242 4242 4242" required />
-                </label>
-                <label>
-                  <span>MM/YY</span>
-                  <input placeholder="12/30" required />
-                </label>
-                <label>
-                  <span>CVC</span>
-                  <input placeholder="123" required />
-                </label>
-                <label className="wide-field">
-                  <span>{t["checkout.name"]}</span>
-                  <input name="cardholder" placeholder="ICONIC CUSTOMER" required />
-                </label>
-              </div>
-            )}
-          </CheckoutStep>
+          {checkoutStep === "delivery" ? (
+            <>
+              <CheckoutStep title={t["checkout.deliveryStep"]}>
+                <div className="choice-grid">
+                  <ChoiceCard
+                    checked={delivery === "address"}
+                    title={t["checkout.addressDelivery"]}
+                    text={t["checkout.addressDeliveryText"]}
+                    onSelect={() => setDelivery("address")}
+                  />
+                  <ChoiceCard
+                    checked={delivery === "office"}
+                    title={t["checkout.officeDelivery"]}
+                    text={t["checkout.officeDeliveryText"]}
+                    onSelect={() => setDelivery("office")}
+                  />
+                </div>
+                <div className="choice-grid courier-provider-grid">
+                  <ChoiceCard checked={provider === "speedy"} title={t["checkout.speedy"]} text={t["checkout.deliveryQuote"]} onSelect={() => setProvider("speedy")} />
+                  <ChoiceCard checked={provider === "econt"} title={t["checkout.econt"]} text={t["checkout.deliveryQuote"]} onSelect={() => setProvider("econt")} />
+                </div>
+                {delivery === "address" ? (
+                  <div className="payment-grid">
+                    <label className="wide-field">
+                      <span>{t["checkout.fullName"]}</span>
+                      <input name="fullName" placeholder="ICONIC CUSTOMER" required />
+                    </label>
+                    <label className="wide-field">
+                      <span>{t["checkout.street"]}</span>
+                      <input name="street" placeholder="ul. Shipka 12" required />
+                    </label>
+                    <label>
+                      <span>{t["checkout.city"]}</span>
+                      <input name="city" placeholder="Sofia" required />
+                    </label>
+                    <label>
+                      <span>{t["checkout.postalCode"]}</span>
+                      <input name="postalCode" placeholder="1000" required />
+                    </label>
+                  </div>
+                ) : (
+                  <div className="payment-grid">
+                    <label>
+                      <span>{t["checkout.officeCity"]}</span>
+                      <select value={officeCity} onChange={(event) => setOfficeCity(event.target.value)} disabled={loadingCities || officeCities.length === 0} required>
+                        <option value="">{loadingCities ? t["checkout.loadingCities"] : t["checkout.noCities"]}</option>
+                        {officeCities.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="wide-field">
+                      <span>{t["checkout.fullName"]}</span>
+                      <input name="fullName" placeholder="ICONIC CUSTOMER" required />
+                    </label>
+                    <label className="wide-field">
+                      <span>{t["checkout.courierOffice"]}</span>
+                      <select required value={selectedOfficeId} onChange={(event) => setSelectedOfficeId(event.target.value)}>
+                        <option value="">{loadingOffices ? t["checkout.loadingOffices"] : t["checkout.noOffices"]}</option>
+                        {offices.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.provider === "speedy" ? t["checkout.speedy"] : t["checkout.econt"]} - {office.label}, {office.address}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <OfficeMap city={officeCity} provider={provider} selectedOffice={selectedOffice} t={t} />
+                  </div>
+                )}
+                <div className="delivery-quote-card">
+                  <span>{quoteEstimate ? t["checkout.deliveryEstimate"] : t["checkout.deliveryLive"]}</span>
+                  <strong>
+                    {t["checkout.deliveryQuote"]}: {formatPrice(checkoutDelivery)}
+                  </strong>
+                  {deliveryError ? <small className="is-error">{deliveryError}</small> : null}
+                  {delivery === "office" && courierDataSource === "fallback" && !deliveryError ? <small>{t["checkout.demoCourierData"]}</small> : null}
+                </div>
+              </CheckoutStep>
 
-          <CheckoutStep title={t["checkout.discountStep"]}>
-            <div className="discount-row">
-              <label>
-                <span>{t["checkout.discountCode"]}</span>
-                <input value={discountInput} onChange={(event) => setDiscountInput(event.target.value)} placeholder="ICONIC10" />
-              </label>
-              <button className="button button-light" type="button" onClick={applyDiscountCode}>
-                {t["checkout.applyCode"]}
+              <CheckoutStep title={t["checkout.discountStep"].replace("3. ", "")}>
+                <div className="discount-row">
+                  <label>
+                    <span>{t["checkout.discountCode"]}</span>
+                    <input value={discountInput} onChange={(event) => setDiscountInput(event.target.value)} placeholder="ICONIC10" />
+                  </label>
+                  <button className="button button-light" type="button" onClick={applyDiscountCode}>
+                    {t["checkout.applyCode"]}
+                  </button>
+                </div>
+                {(appliedDiscount || discountError) && (
+                  <p className={`form-note ${appliedDiscount ? "is-success" : "is-error"}`}>
+                    {appliedDiscount ? `${t["checkout.discountApplied"]}: ${appliedDiscount}` : discountError}
+                  </p>
+                )}
+              </CheckoutStep>
+
+              <button className="button button-dark" type="button" disabled={cartLines.length === 0} onClick={() => setCheckoutStep("payment")}>
+                {t["checkout.paymentStep"].replace("2. ", "")} · {formatPrice(checkoutTotal)}
               </button>
-            </div>
-            {(appliedDiscount || discountError) && (
-              <p className={`form-note ${appliedDiscount ? "is-success" : "is-error"}`}>
-                {appliedDiscount ? `${t["checkout.discountApplied"]}: ${appliedDiscount}` : discountError}
-              </p>
-            )}
-          </CheckoutStep>
+            </>
+          ) : (
+            <>
+              <CheckoutStep title={t["checkout.paymentStep"]}>
+                <div className="choice-grid">
+                  <ChoiceCard checked={payment === "card"} title={t["checkout.cardPayment"]} text={t["checkout.cardPaymentText"]} onSelect={() => setPayment("card")} />
+                  <ChoiceCard checked={payment === "cash"} title={t["checkout.cashPayment"]} text={t["checkout.cashPaymentText"]} onSelect={() => setPayment("cash")} />
+                </div>
+                {payment === "card" && (
+                  <div className="payment-grid">
+                    <label className="wide-field">
+                      <span>{t["checkout.card"]}</span>
+                      <input inputMode="numeric" placeholder="4242 4242 4242 4242" required />
+                    </label>
+                    <label>
+                      <span>MM/YY</span>
+                      <input placeholder="12/30" required />
+                    </label>
+                    <label>
+                      <span>CVC</span>
+                      <input placeholder="123" required />
+                    </label>
+                    <label className="wide-field">
+                      <span>{t["checkout.name"]}</span>
+                      <input name="cardholder" placeholder="ICONIC CUSTOMER" required />
+                    </label>
+                  </div>
+                )}
+              </CheckoutStep>
+              <button className="text-button checkout-back-step" type="button" onClick={() => setCheckoutStep("delivery")}>
+                {t["checkout.deliveryStep"].replace("1. ", "")}
+              </button>
+              <button className="button button-dark" type="submit" disabled={cartLines.length === 0}>
+                {t["checkout.pay"]} · {formatPrice(checkoutTotal)}
+              </button>
+            </>
+          )}
 
           <div className="checkout-total-card">
             <h3>{t["checkout.summary"]}</h3>
@@ -352,9 +349,6 @@ export default function Checkout({
             <TotalLine label={t["cart.delivery"]} value={formatPrice(checkoutDelivery)} />
             <TotalLine label={t["cart.total"]} value={formatPrice(checkoutTotal)} strong />
           </div>
-          <button className="button button-dark" type="submit" disabled={cartLines.length === 0}>
-            {t["checkout.pay"]} · {formatPrice(checkoutTotal)}
-          </button>
           <p className="form-note">{paymentStatus || t["checkout.note"]}</p>
         </form>
       </div>
@@ -470,7 +464,7 @@ function CartSummary({
   deliveryTotal: number;
   total: number;
   provider: CourierProvider;
-  onRemove: (productId: string, size: string) => void;
+  onRemove: (productId: string, size: string, colorName: string) => void;
   t: Record<string, string>;
 }) {
   return (
@@ -481,19 +475,19 @@ function CartSummary({
       ) : (
         <div className="cart-lines">
           {cartLines.map((line) => (
-            <div className="cart-line" key={`${line.productId}-${line.size}`}>
+            <div className="cart-line" key={`${line.productId}-${line.size}-${line.colorName}`}>
               <div>
                 <img className="cart-thumb" src={line.product.gallery[0]} alt={line.product.translations[lang].name} />
               </div>
               <div>
                 <strong>{line.product.translations[lang].name}</strong>
                 <span>
-                  {t["cart.size"]}: {line.size} · x{line.quantity}
+                  {t["cart.color"]}: {line.colorName} · {t["cart.size"]}: {line.size} · x{line.quantity}
                 </span>
               </div>
               <div>
                 <strong>{formatPrice(line.product.price * line.quantity)}</strong>
-                <button type="button" onClick={() => onRemove(line.productId, line.size)}>
+                <button type="button" onClick={() => onRemove(line.productId, line.size, line.colorName)}>
                   {t["cart.remove"]}
                 </button>
               </div>

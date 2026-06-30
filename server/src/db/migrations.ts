@@ -149,6 +149,12 @@ export const migrations: Migration[] = [
       DELETE FROM products WHERE id IN ('relaxed-shirt', 'easy-trouser', 'core-tee');
     `,
   },
+  {
+    id: "003_product_color_options",
+    up: `
+      ALTER TABLE products ADD COLUMN colors_json TEXT NOT NULL DEFAULT '[]';
+    `,
+  },
 ];
 
 export function runMigrations(db: DbClient) {

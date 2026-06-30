@@ -12,6 +12,11 @@ export type ProductTranslation = {
   badge: string;
 };
 
+export type ProductColor = {
+  name: string;
+  hex: string;
+};
+
 export type ProductImage = {
   id: string;
   productId: string;
@@ -42,6 +47,7 @@ export type ProductRecord = {
   colorClass: string;
   garmentClass: string;
   price: number;
+  colors: ProductColor[];
   gallery: string[];
   images: ProductImage[];
   sizes: string[];
@@ -75,6 +81,7 @@ export type CreateProductInput = {
   details: string[];
   care: string[];
   imageUrls: string[];
+  translations?: Partial<Record<Lang, ProductTranslation>>;
 };
 
 export type ReviewRecord = {

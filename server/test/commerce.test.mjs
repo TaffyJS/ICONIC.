@@ -33,21 +33,27 @@ function createTestProduct(repository) {
   });
 }
 
-test("database migrations start without demo products", () => {
+test("database bootstrap seeds the premium summer catalog", () => {
   const repository = createTestRepository();
+  const products = repository.listProducts();
 
-  assert.equal(repository.listProducts().length, 0);
+  assert.equal(products.length, 6);
+  assert.ok(products.some((product) => product.id === "riviera-linen-shirt"));
+  assert.ok(products.every((product) => product.colors.length > 0));
 });
 
 test("created products include variants, inventory, and image references", () => {
   const repository = createTestRepository();
+  const initialCount = repository.listProducts().length;
   createTestProduct(repository);
   const products = repository.listProducts();
+  const product = products.find((entry) => entry.id === "linen-camp-shirt");
 
-  assert.equal(products.length, 1);
-  assert.equal(products[0].images.length, 1);
-  assert.ok(products[0].sizes.length > 0);
-  assert.ok(products[0].stock > 0);
+  assert.equal(products.length, initialCount + 1);
+  assert.equal(product?.images.length, 1);
+  assert.ok(product && product.sizes.length > 0);
+  assert.ok(product && product.stock > 0);
+  assert.deepEqual(product?.colors, [{ name: "Natural cream", hex: "#f2ede4" }]);
 });
 
 test("cart items are stored transactionally against product variants", () => {

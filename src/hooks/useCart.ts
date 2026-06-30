@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { Product } from "../data";
+import type { Product, ProductColor } from "../data";
 import type { CartItem } from "../types/app";
 import { cartIdStorageKey } from "../config/storage";
 import { addApiCartItem, removeApiCartItem } from "../services/commerceApi";
@@ -11,9 +11,9 @@ export function useCart(products: Product[]) {
   const cartLines = useMemo(() => getCartLines(cart, products), [cart, products]);
   const subtotal = cartLines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
 
-  function addToCart(product: Product, size = product.sizes[0]) {
-    setCart((current) => addCartItem(current, product, size));
-    void addApiCartItem({ cartId: cartId || undefined, productId: product.id, size, quantity: 1 })
+  function addToCart(product: Product, size = product.sizes[0], color: ProductColor = product.colors[0]) {
+    setCart((current) => addCartItem(current, product, size, color));
+    void addApiCartItem({ cartId: cartId || undefined, productId: product.id, size, colorName: color.name, colorHex: color.hex, quantity: 1 })
       .then(({ cart: apiCart }) => {
         setCartId(apiCart.id);
         localStorage.setItem(cartIdStorageKey, apiCart.id);
@@ -21,10 +21,10 @@ export function useCart(products: Product[]) {
       .catch(() => undefined);
   }
 
-  function removeFromCart(productId: string, size: string) {
-    setCart((current) => removeCartItem(current, productId, size));
+  function removeFromCart(productId: string, size: string, colorName: string) {
+    setCart((current) => removeCartItem(current, productId, size, colorName));
     if (cartId) {
-      void removeApiCartItem({ cartId, productId, size }).catch(() => undefined);
+      void removeApiCartItem({ cartId, productId, size, colorName }).catch(() => undefined);
     }
   }
 

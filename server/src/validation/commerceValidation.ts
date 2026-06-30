@@ -112,6 +112,7 @@ export function parseProductRequest(body: Record<string, unknown>): ValidationRe
       details: parseLines(body.details),
       care: parseLines(body.care),
       imageUrls,
+      translations: parseProductTranslations(body.translations),
     },
   };
 }
@@ -135,4 +136,36 @@ function parseLines(value: unknown) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function parseProductTranslations(value: unknown) {
+  if (!isRecord(value)) return undefined;
+
+  const translations: NonNullable<CreateProductInput["translations"]> = {};
+  for (const lang of ["bg", "en"] as const) {
+    const translation = value[lang];
+    if (!isRecord(translation)) continue;
+
+    const name = String(translation.name || "").trim();
+    const category = String(translation.category || "").trim();
+    const short = String(translation.short || "").trim();
+    const description = String(translation.description || "").trim();
+    const fit = String(translation.fit || "").trim();
+    const material = String(translation.material || "").trim();
+    const badge = String(translation.badge || "").trim();
+
+    if (name && category && description) {
+      translations[lang] = {
+        name,
+        category,
+        short: short || description,
+        description,
+        fit: fit || "Relaxed fit",
+        material: material || "Linen blend",
+        badge: badge || "New arrival",
+      };
+    }
+  }
+
+  return Object.keys(translations).length > 0 ? translations : undefined;
 }

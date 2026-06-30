@@ -30,6 +30,8 @@ export type ApiCart = {
   items: Array<{
     productId: string;
     size: string;
+    colorName?: string;
+    colorHex?: string;
     quantity: number;
   }>;
 };
@@ -67,6 +69,7 @@ export function createProduct(input: {
   details: string[];
   care: string[];
   imageUrls: string[];
+  translations?: Product["translations"];
 }) {
   return postJson<{ product: Product }>("/api/products", input);
 }
@@ -75,11 +78,11 @@ export function updateBestSellers(input: { title: string; productIds: string[] }
   return postJson<{ bestSellers: BestSellerSection }>("/api/admin/best-sellers", input);
 }
 
-export function addApiCartItem(input: { cartId?: string; productId: string; size: string; quantity: number }) {
+export function addApiCartItem(input: { cartId?: string; productId: string; size: string; colorName?: string; colorHex?: string; quantity: number }) {
   return postJson<{ cart: ApiCart }>("/api/carts/items", input);
 }
 
-export function removeApiCartItem(input: { cartId: string; productId: string; size: string }) {
+export function removeApiCartItem(input: { cartId: string; productId: string; size: string; colorName?: string }) {
   return postJson<{ cart: ApiCart }>("/api/carts/items/remove", { ...input, quantity: 1 });
 }
 
