@@ -1,3 +1,6 @@
 node_modules/
 dist/
+server-dist/
+server/db/*.sqlite
+server/db/*.sqlite-*
 .DS_Store

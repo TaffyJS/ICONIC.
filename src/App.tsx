@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { demoOrders, dictionaries, type Lang, type Product, products } from "./data";
+import { useMemo, useState } from "react";
+import { dictionaries, type Product } from "./data";
 import { CartToast } from "./components/feedback/CartToast";
 import { Footer } from "./components/layout/Footer";
 import { Header } from "./components/layout/Header";
+import { useAdminMode } from "./hooks/useAdminMode";
+import { useAdminDashboard } from "./hooks/useAdminDashboard";
+import { useCart } from "./hooks/useCart";
+import { useCatalogData } from "./hooks/useCatalogData";
+import { useHashRoute } from "./hooks/useHashRoute";
+import { useLanguage } from "./hooks/useLanguage";
+import { useProductRouteState } from "./hooks/useProductRouteState";
+import { useScrollRestoration } from "./hooks/useScrollRestoration";
 import AddCollectionItemPage from "./pages/admin/AddCollectionItemPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 import { getAdminStats } from "./pages/admin/adminUtils";
@@ -10,73 +18,23 @@ import Checkout from "./pages/checkout/Checkout";
 import ContentPage from "./pages/content/ContentPage";
 import HomePage from "./pages/home/HomePage";
 import ProductPage from "./pages/product/ProductPage";
-import type { CartItem, Route } from "./types/app";
-import { deliveryPrice } from "./utils/format";
-import { getRoute } from "./utils/routing";
+import { createApiOrder, updateBestSellers } from "./services/commerceApi";
 
 export default function App() {
-  const [lang, setLang] = useState<Lang>(() => {
-    const stored = localStorage.getItem("iconic-language");
-    return stored === "en" ? "en" : "bg";
-  });
-  const [selectedSize, setSelectedSize] = useState(products[0].sizes[1]);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const { products, bestSellers, orders, reloadCatalog } = useCatalogData();
+  const adminDashboard = useAdminDashboard();
+  const { lang, changeLanguage } = useLanguage();
+  const route = useHashRoute();
+  const { selectedProduct, selectedSize, setSelectedSize } = useProductRouteState(route, products);
+  const { cartId, cart, cartLines, subtotal, addToCart: addItemToCart, removeFromCart } = useCart(products);
   const [paymentStatus, setPaymentStatus] = useState("");
-  const [route, setRoute] = useState<Route>(() => getRoute());
   const [cartPulse, setCartPulse] = useState(false);
   const [cartNotice, setCartNotice] = useState("");
   const t = dictionaries[lang];
+  const adminStats = useMemo(() => getAdminStats(orders), [orders]);
 
-  const selectedProduct =
-    route.name === "product"
-      ? products.find((product) => product.id === route.productId) ?? products[0]
-      : products[0];
-
-  useEffect(() => {
-    const updateRoute = () => setRoute(getRoute());
-    window.addEventListener("hashchange", updateRoute);
-    return () => window.removeEventListener("hashchange", updateRoute);
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle("admin-mode", route.name === "admin" || route.name === "adminAddItem");
-    return () => document.body.classList.remove("admin-mode");
-  }, [route.name]);
-
-  useEffect(() => {
-    if (route.name === "product") {
-      setSelectedSize(selectedProduct.sizes[Math.min(1, selectedProduct.sizes.length - 1)]);
-    }
-    if (route.name === "home" && window.location.hash && !window.location.hash.startsWith("#/")) {
-      const targetId = window.location.hash.replace(/^#/, "") || "top";
-      window.setTimeout(() => {
-        document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
-      return;
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [route, selectedProduct]);
-
-  const cartLines = useMemo(
-    () =>
-      cart
-        .map((item) => {
-          const product = products.find((entry) => entry.id === item.productId);
-          return product ? { ...item, product } : null;
-        })
-        .filter((line): line is CartItem & { product: Product } => Boolean(line)),
-    [cart],
-  );
-
-  const subtotal = cartLines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
-  const total = subtotal > 0 ? subtotal + deliveryPrice : 0;
-  const adminStats = useMemo(() => getAdminStats(demoOrders), []);
-
-  function changeLanguage(nextLang: Lang) {
-    setLang(nextLang);
-    localStorage.setItem("iconic-language", nextLang);
-    document.documentElement.lang = nextLang;
-  }
+  useAdminMode(route.name);
+  useScrollRestoration(route);
 
   function openProduct(product: Product) {
     window.location.hash = `/product/${product.id}`;
@@ -88,26 +46,31 @@ export default function App() {
     setCartNotice(product.translations[lang].name);
     window.setTimeout(() => setCartPulse(false), 650);
     window.setTimeout(() => setCartNotice(""), 1800);
-    setCart((current) => {
-      const existing = current.find((item) => item.productId === product.id && item.size === size);
-      if (existing) {
-        return current.map((item) =>
-          item.productId === product.id && item.size === size
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      }
-      return [...current, { productId: product.id, size, quantity: 1 }];
-    });
-  }
-
-  function removeFromCart(productId: string, size: string) {
-    setCart((current) => current.filter((item) => item.productId !== productId || item.size !== size));
+    addItemToCart(product, size);
   }
 
   function submitPayment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const customer = String(formData.get("fullName") || formData.get("cardholder") || "Demo Customer");
+    const city = String(formData.get("city") || "Sofia");
+
+    void createApiOrder({
+      cartId: cartId || undefined,
+      customer,
+      city,
+      channel: "address",
+      payment: "card",
+      total: subtotal,
+      items: cart,
+    }).catch(() => undefined);
+
     setPaymentStatus(t["checkout.success"]);
+  }
+
+  async function saveBestSellers(input: { title: string; productIds: string[] }) {
+    await updateBestSellers(input);
+    await Promise.all([reloadCatalog(), adminDashboard.reloadDashboard()]);
   }
 
   return (
@@ -116,12 +79,13 @@ export default function App() {
       <CartToast productName={cartNotice} t={t} />
       <main>
         {route.name === "home" && (
-          <HomePage t={t} lang={lang} onOpenProduct={openProduct} onAddToCart={addToCart} />
+          <HomePage t={t} lang={lang} products={products} bestSellers={bestSellers} onOpenProduct={openProduct} onAddToCart={addToCart} />
         )}
-        {route.name === "product" && (
+        {route.name === "product" && selectedProduct && (
           <ProductPage
             lang={lang}
             product={selectedProduct}
+            products={products}
             selectedSize={selectedSize}
             setSelectedSize={setSelectedSize}
             onAddToCart={addToCart}
@@ -140,8 +104,26 @@ export default function App() {
             t={t}
           />
         )}
-        {route.name === "admin" && <AdminPanel stats={adminStats} t={t} />}
-        {route.name === "adminAddItem" && <AddCollectionItemPage t={t} />}
+        {route.name === "admin" && (
+          <AdminPanel
+            stats={adminStats}
+            stock={adminDashboard.stock}
+            orders={adminDashboard.orders}
+            reviews={adminDashboard.reviews}
+            products={adminDashboard.products}
+            bestSellers={adminDashboard.bestSellers}
+            onSaveBestSellers={saveBestSellers}
+            t={t}
+          />
+        )}
+        {route.name === "adminAddItem" && (
+          <AddCollectionItemPage
+            t={t}
+            onSaved={async () => {
+              await Promise.all([reloadCatalog(), adminDashboard.reloadDashboard()]);
+            }}
+          />
+        )}
         {route.name === "content" && <ContentPage slug={route.slug} lang={lang} t={t} />}
       </main>
       <Footer t={t} />

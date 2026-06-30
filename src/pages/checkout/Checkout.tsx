@@ -223,19 +223,19 @@ export default function Checkout({
               <div className="payment-grid">
                 <label className="wide-field">
                   <span>{t["checkout.fullName"]}</span>
-                  <input placeholder="ICONIC CUSTOMER" required />
+                  <input name="fullName" placeholder="ICONIC CUSTOMER" required />
                 </label>
                 <label className="wide-field">
                   <span>{t["checkout.street"]}</span>
-                  <input placeholder="ul. Shipka 12" required />
+                  <input name="street" placeholder="ul. Shipka 12" required />
                 </label>
                 <label>
                   <span>{t["checkout.city"]}</span>
-                  <input placeholder="Sofia" required />
+                  <input name="city" placeholder="Sofia" required />
                 </label>
                 <label>
                   <span>{t["checkout.postalCode"]}</span>
-                  <input placeholder="1000" required />
+                  <input name="postalCode" placeholder="1000" required />
                 </label>
               </div>
             ) : (
@@ -260,7 +260,7 @@ export default function Checkout({
                 </label>
                 <label className="wide-field">
                   <span>{t["checkout.fullName"]}</span>
-                  <input placeholder="ICONIC CUSTOMER" required />
+                  <input name="fullName" placeholder="ICONIC CUSTOMER" required />
                 </label>
                 <label className="wide-field">
                   <span>{t["checkout.courierOffice"]}</span>
@@ -321,7 +321,7 @@ export default function Checkout({
                 </label>
                 <label className="wide-field">
                   <span>{t["checkout.name"]}</span>
-                  <input placeholder="ICONIC CUSTOMER" required />
+                  <input name="cardholder" placeholder="ICONIC CUSTOMER" required />
                 </label>
               </div>
             )}

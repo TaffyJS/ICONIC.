@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import type { DraftCollectionItem } from "../../types/app";
+import type { Product } from "../../data";
+import { createProduct } from "../../services/commerceApi";
 import { formatPrice } from "../../utils/format";
 
-export default function AddCollectionItemPage({ t }: { t: Record<string, string> }) {
+export default function AddCollectionItemPage({ t, onSaved }: { t: Record<string, string>; onSaved: () => Promise<void> }) {
   const defaultSizes = ["XS", "S", "M", "L", "XL"];
-  const [drafts, setDrafts] = useState<DraftCollectionItem[]>([]);
+  const [savedProducts, setSavedProducts] = useState<Product[]>([]);
   const [status, setStatus] = useState("");
   const [form, setForm] = useState({
     name: "",
@@ -15,12 +16,14 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
     fit: "Relaxed fit",
     material: "Linen blend",
     description: "",
+    short: "",
+    badge: "New arrival",
     details: "Limited run\nHand-cut preparation\nGift-ready packaging",
     care: "Wash at 30 degrees\nAir dry\nIron on low heat",
   });
   const [sizes, setSizes] = useState<string[]>(["S", "M", "L"]);
   const [sizeStock, setSizeStock] = useState<Record<string, string>>({ S: "3", M: "3", L: "3" });
-  const [images, setImages] = useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState("");
 
   function updateField(field: keyof typeof form, value: string) {
     setStatus("");
@@ -48,27 +51,6 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
     setSizeStock((current) => ({ ...current, [size]: value }));
   }
 
-  function readFiles(files: FileList | null) {
-    if (!files?.length) return;
-    const selectedFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
-    Promise.all(
-      selectedFiles.map(
-        (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result));
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          }),
-      ),
-    )
-      .then((previews) => {
-        setImages((current) => [...current, ...previews].slice(0, 6));
-        setStatus("");
-      })
-      .catch(() => setStatus("Could not read one of the selected images."));
-  }
-
   function resetForm() {
     setForm({
       name: "",
@@ -79,17 +61,23 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
       fit: "Relaxed fit",
       material: "Linen blend",
       description: "",
+      short: "",
+      badge: "New arrival",
       details: "Limited run\nHand-cut preparation\nGift-ready packaging",
       care: "Wash at 30 degrees\nAir dry\nIron on low heat",
     });
     setSizes(["S", "M", "L"]);
     setSizeStock({ S: "3", M: "3", L: "3" });
-    setImages([]);
+    setImageUrls("");
   }
 
-  function createDraft(event: React.FormEvent<HTMLFormElement>) {
+  async function saveProduct(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const price = Number.parseFloat(form.price);
+    const parsedImageUrls = imageUrls
+      .split(/\r?\n/)
+      .map((url) => url.trim())
+      .filter(Boolean);
     const parsedSizeStock = sizes.reduce<Record<string, number>>((acc, size) => {
       acc[size] = Number.parseInt(sizeStock[size] ?? "", 10);
       return acc;
@@ -116,34 +104,41 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
       setStatus("Add stock to at least one selected size.");
       return;
     }
-    if (images.length === 0) {
-      setStatus("Upload at least one product image for the collection item.");
+    if (parsedImageUrls.length === 0) {
+      setStatus("Add at least one product image URL.");
       return;
     }
 
-    const draft: DraftCollectionItem = {
-      id: `draft-${Date.now()}`,
-      name: form.name.trim(),
-      category: form.category.trim(),
-      price,
-      sizeStock: parsedSizeStock,
-      sku: form.sku.trim() || `ICONIC-${Date.now().toString().slice(-5)}`,
-      color: form.color.trim(),
-      fit: form.fit.trim(),
-      material: form.material.trim(),
-      description: form.description.trim(),
-      sizes,
-      details: form.details.trim(),
-      care: form.care.trim(),
-      images,
-    };
+    try {
+      const { product } = await createProduct({
+        name: form.name.trim(),
+        category: form.category.trim(),
+        price,
+        sku: form.sku.trim() || undefined,
+        color: form.color.trim(),
+        fit: form.fit.trim(),
+        material: form.material.trim(),
+        description: form.description.trim(),
+        short: form.short.trim() || form.description.trim(),
+        badge: form.badge.trim() || "New arrival",
+        sizes,
+        sizeStock: parsedSizeStock,
+        details: form.details.split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
+        care: form.care.split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
+        imageUrls: parsedImageUrls,
+      });
 
-    setDrafts((current) => [draft, ...current]);
-    setStatus("Draft collection item created. It is stored in this admin session only.");
-    resetForm();
+      setSavedProducts((current) => [product, ...current]);
+      setStatus("Collection item saved to the database.");
+      await onSaved();
+      resetForm();
+    } catch {
+      setStatus("Could not save this product to the database.");
+    }
   }
 
-  const previewImage = images[0] || "/assets/iconic-logo-tile.png";
+  const parsedPreviewImages = imageUrls.split(/\r?\n/).map((url) => url.trim()).filter(Boolean);
+  const previewImage = parsedPreviewImages[0] || "/assets/iconic-logo-tile.png";
   const previewTotalStock = sizes.reduce((sum, size) => sum + (Number.parseInt(sizeStock[size] ?? "0", 10) || 0), 0);
 
   return (
@@ -157,13 +152,13 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
           <h2>Create a collection item.</h2>
         </div>
         <div className="admin-create-note">
-          <span>Demo workflow</span>
-          <p>Uploads are previewed in-browser. A real save would need backend storage and a product API.</p>
+          <span>Database workflow</span>
+          <p>Products are saved to the local database. Images are stored as URL references, not binaries.</p>
         </div>
       </div>
 
       <div className="admin-create-layout">
-        <form className="admin-create-form" onSubmit={createDraft}>
+        <form className="admin-create-form" onSubmit={(event) => void saveProduct(event)}>
           <section className="admin-card admin-form-section">
             <div className="card-head">
               <div>
@@ -208,6 +203,18 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
                   placeholder="Describe the cut, fabric feel, and why it belongs in this drop."
                 />
               </label>
+              <label className="wide-field">
+                <span>Short card text</span>
+                <textarea
+                  value={form.short}
+                  onChange={(event) => updateField("short", event.target.value)}
+                  placeholder="Short text for homepage product cards."
+                />
+              </label>
+              <label>
+                <span>Badge</span>
+                <input value={form.badge} onChange={(event) => updateField("badge", event.target.value)} />
+              </label>
             </div>
           </section>
 
@@ -215,22 +222,26 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
             <div className="card-head">
               <div>
                 <div className="section-label">Images and variants</div>
-                <h3>Upload and stock setup</h3>
+                <h3>Image references and stock setup</h3>
               </div>
             </div>
-            <div className="upload-drop">
-              <input id="collection-images" type="file" accept="image/*" multiple onChange={(event) => readFiles(event.target.files)} />
-              <label htmlFor="collection-images">
-                <strong>Upload product images</strong>
-                <span>PNG, JPG, WebP. Up to 6 preview images in this demo.</span>
-              </label>
-            </div>
+            <label className="wide-field">
+              <span>Product image URLs</span>
+              <textarea
+                value={imageUrls}
+                onChange={(event) => {
+                  setImageUrls(event.target.value);
+                  setStatus("");
+                }}
+                placeholder="https://example.com/product-front.jpg&#10;https://example.com/product-detail.jpg"
+              />
+            </label>
             <div className="upload-preview-grid">
-              {images.length === 0 ? (
-                <div className="upload-empty">No images uploaded yet.</div>
+              {parsedPreviewImages.length === 0 ? (
+                <div className="upload-empty">No image URLs added yet.</div>
               ) : (
-                images.map((image, index) => (
-                  <div key={`${image.slice(0, 28)}-${index}`}>
+                parsedPreviewImages.map((image, index) => (
+                  <div key={`${image}-${index}`}>
                     <img src={image} alt={`Uploaded product ${index + 1}`} />
                   </div>
                 ))
@@ -281,12 +292,12 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
             </div>
             <div className="admin-submit-row">
               <button className="button button-dark" type="submit">
-                Save draft item
+                Save product
               </button>
               <button className="button button-light" type="button" onClick={resetForm}>
                 Clear form
               </button>
-              <p className="form-note">{status || "Drafts stay available until the page reloads."}</p>
+              <p className="form-note">{status || "Saved items appear on the homepage after the database responds."}</p>
             </div>
           </section>
         </form>
@@ -305,18 +316,18 @@ export default function AddCollectionItemPage({ t }: { t: Record<string, string>
           </div>
 
           <div className="admin-card draft-list">
-            <div className="panel-title">Created drafts</div>
-            {drafts.length === 0 ? (
-              <p>No draft items yet.</p>
+            <div className="panel-title">Saved this session</div>
+            {savedProducts.length === 0 ? (
+              <p>No saved items in this session yet.</p>
             ) : (
-              drafts.map((draft) => (
-                <article key={draft.id}>
-                  <img src={draft.images[0]} alt={draft.name} />
+              savedProducts.map((product) => (
+                <article key={product.id}>
+                  <img src={product.gallery[0]} alt={product.translations.en.name} />
                   <div>
-                    <strong>{draft.name}</strong>
+                    <strong>{product.translations.en.name}</strong>
                     <span>
-                      {draft.sku} · {formatPrice(draft.price)} ·{" "}
-                      {Object.entries(draft.sizeStock)
+                      {formatPrice(product.price)} ·{" "}
+                      {Object.entries(product.sizeStock)
                         .map(([size, count]) => `${count} ${size}`)
                         .join(" / ")}
                     </span>

@@ -4,18 +4,24 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "api": "npm run build:api && node server-dist/index.js",
+    "build:api": "tsc -p tsconfig.server.json",
+    "db:migrate": "npm run build:api && node server-dist/db/migrate.js",
+    "db:seed": "npm run build:api && node server-dist/db/seedCli.js",
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "build": "tsc && npm run build:api && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "npm run build:api && node --test server/test/*.test.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
-    "vite": "^7.0.0",
-    "typescript": "^5.8.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^7.0.0"
   },
   "devDependencies": {
+    "@types/node": "^26.0.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0"
   }

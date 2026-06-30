@@ -1,4 +1,5 @@
-import { products, type Lang, type Product } from "../../data";
+import type { Lang, Product } from "../../data";
+import type { BestSellerSection } from "../../services/commerceApi";
 import { formatPrice } from "../../utils/format";
 
 export default function HomePage({
@@ -6,9 +7,13 @@ export default function HomePage({
   lang,
   onOpenProduct,
   onAddToCart,
+  products,
+  bestSellers,
 }: {
   t: Record<string, string>;
   lang: Lang;
+  products: Product[];
+  bestSellers: BestSellerSection;
   onOpenProduct: (product: Product) => void;
   onAddToCart: (product: Product) => void;
 }) {
@@ -17,8 +22,8 @@ export default function HomePage({
       <Hero t={t} />
       <Metrics t={t} />
       <Intro t={t} />
-      <ShopHighlights lang={lang} t={t} onOpenProduct={onOpenProduct} onAddToCart={onAddToCart} />
-      <Collection lang={lang} t={t} onOpenProduct={onOpenProduct} onAddToCart={onAddToCart} />
+      <ShopHighlights lang={lang} t={t} products={products} bestSellers={bestSellers} onOpenProduct={onOpenProduct} onAddToCart={onAddToCart} />
+      <Collection lang={lang} t={t} products={products} onOpenProduct={onOpenProduct} onAddToCart={onAddToCart} />
       <Standard t={t} />
     </>
   );
@@ -84,9 +89,11 @@ function Collection({
   t,
   onOpenProduct,
   onAddToCart,
+  products,
 }: {
   lang: Lang;
   t: Record<string, string>;
+  products: Product[];
   onOpenProduct: (product: Product) => void;
   onAddToCart: (product: Product) => void;
 }) {
@@ -99,13 +106,20 @@ function Collection({
         </div>
         <p>{t["collection.text"]}</p>
       </div>
-      <div className="collection-grid">
+      {products.length === 0 ? (
+        <div className="empty-product-band">{t["collection.empty"]}</div>
+      ) : (
+        <div className="collection-grid">
         {products.map((product) => {
           const copy = product.translations[lang];
           return (
             <article className={`collection-card ${product.colorClass}`} key={product.id}>
               <button className="product-visual-button" type="button" onClick={() => onOpenProduct(product)}>
-                <div className={`garment ${product.garmentClass}`} aria-hidden="true" />
+                {product.gallery[0] ? (
+                  <img src={product.gallery[0]} alt={copy.name} />
+                ) : (
+                  <div className={`garment ${product.garmentClass}`} aria-hidden="true" />
+                )}
               </button>
               <div className="card-copy">
                 <span>{copy.category}</span>
@@ -124,7 +138,8 @@ function Collection({
             </article>
           );
         })}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -134,14 +149,20 @@ function ShopHighlights({
   t,
   onOpenProduct,
   onAddToCart,
+  products,
+  bestSellers,
 }: {
   lang: Lang;
   t: Record<string, string>;
+  products: Product[];
+  bestSellers: BestSellerSection;
   onOpenProduct: (product: Product) => void;
   onAddToCart: (product: Product) => void;
 }) {
+  if (products.length === 0) return null;
+
   const summerItems = products;
-  const bestSellers = [products[1], products[0]];
+  const showBestSellers = bestSellers.products.length >= 2;
 
   return (
     <section className="shop-highlights">
@@ -156,18 +177,20 @@ function ShopHighlights({
         onOpenProduct={onOpenProduct}
         onAddToCart={onAddToCart}
       />
-      <ProductShowcase
-        id="best-sellers"
-        label={t["home.best.label"]}
-        title={t["home.best.title"]}
-        text={t["home.best.text"]}
-        products={bestSellers}
-        lang={lang}
-        t={t}
-        featured
-        onOpenProduct={onOpenProduct}
-        onAddToCart={onAddToCart}
-      />
+      {showBestSellers ? (
+        <ProductShowcase
+          id="best-sellers"
+          label={t["home.best.label"]}
+          title={bestSellers.title}
+          text={t["home.best.text"]}
+          products={bestSellers.products}
+          lang={lang}
+          t={t}
+          featured
+          onOpenProduct={onOpenProduct}
+          onAddToCart={onAddToCart}
+        />
+      ) : null}
     </section>
   );
 }

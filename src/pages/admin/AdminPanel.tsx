@@ -1,31 +1,47 @@
-import { useState } from "react";
-import { adminOrders, adminReviews, adminStock } from "../../data";
+import { useEffect, useState } from "react";
+import type { AdminOrderRecord, AdminReviewRecord, AdminStockItem, Product } from "../../data";
+import type { BestSellerSection } from "../../services/commerceApi";
 import { formatPrice } from "../../utils/format";
 import type { getAdminStats } from "./adminUtils";
 
 export default function AdminPanel({
   stats,
+  stock,
+  orders,
+  reviews,
+  products,
+  bestSellers,
+  onSaveBestSellers,
   t,
 }: {
   stats: ReturnType<typeof getAdminStats>;
+  stock: AdminStockItem[];
+  orders: AdminOrderRecord[];
+  reviews: AdminReviewRecord[];
+  products: Product[];
+  bestSellers: BestSellerSection;
+  onSaveBestSellers: (input: { title: string; productIds: string[] }) => Promise<void>;
   t: Record<string, string>;
 }) {
-  const [adminTab, setAdminTab] = useState<"overview" | "stock" | "orders" | "delivery" | "reviews">("overview");
-  const lowStockProducts = adminStock.slice().sort((a, b) => a.total - b.total).slice(0, 3);
-  const flaggedReviews = adminReviews.filter((review) => review.flagged);
-  const completedOrders = adminOrders.filter((order) => order.status === "Delivered");
-  const activeOrders = adminOrders.filter((order) => order.status !== "Delivered" && order.status !== "Cancelled");
+  const [adminTab, setAdminTab] = useState<"overview" | "stock" | "orders" | "delivery" | "reviews" | "merchandising">("overview");
+  const [bestSellerTitle, setBestSellerTitle] = useState(bestSellers.title);
+  const [selectedBestSellers, setSelectedBestSellers] = useState<string[]>(bestSellers.productIds);
+  const [merchandisingStatus, setMerchandisingStatus] = useState("");
+  const lowStockProducts = stock.slice().sort((a, b) => a.total - b.total).slice(0, 3);
+  const flaggedReviews = reviews.filter((review) => review.flagged);
+  const completedOrders = orders.filter((order) => order.status === "Delivered");
+  const activeOrders = orders.filter((order) => order.status !== "Delivered" && order.status !== "Cancelled");
   const completedRevenueBgn = completedOrders.reduce((sum, order) => sum + Number.parseFloat(order.totalBgn), 0);
   const openRevenueBgn = activeOrders.reduce((sum, order) => sum + Number.parseFloat(order.totalBgn), 0);
   const averageRating =
-    adminReviews.length > 0
-      ? (adminReviews.reduce((sum, review) => sum + review.rating, 0) / adminReviews.length).toFixed(1)
+    reviews.length > 0
+      ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
       : "0.0";
-  const totalStock = adminStock.reduce((sum, item) => sum + item.total, 0);
-  const deliveryAddressCount = adminOrders.filter((order) => order.deliveryMethod === "Address").length;
-  const deliveryOfficeCount = adminOrders.filter((order) => order.deliveryMethod === "Office").length;
-  const cardCount = adminOrders.filter((order) => order.payment === "Card").length;
-  const codCount = adminOrders.filter((order) => order.payment === "Cash on delivery").length;
+  const totalStock = stock.reduce((sum, item) => sum + item.total, 0);
+  const deliveryAddressCount = orders.filter((order) => order.deliveryMethod === "Address").length;
+  const deliveryOfficeCount = orders.filter((order) => order.deliveryMethod === "Office").length;
+  const cardCount = orders.filter((order) => order.payment === "Card").length;
+  const codCount = orders.filter((order) => order.payment === "Cash on delivery").length;
   const completedStatusData: Array<{ label: string; value: number; tone: "sand" | "moss" | "clay" }> = [
     { label: t["admin.statusDelivered"], value: completedOrders.length, tone: "sand" },
     { label: t["admin.paymentCardShort"], value: completedOrders.filter((order) => order.payment === "Card").length, tone: "moss" },
@@ -36,11 +52,28 @@ export default function AdminPanel({
     },
   ];
   const activeStatusData: Array<{ label: string; value: number; tone: "sand" | "moss" | "clay" }> = [
-    { label: t["admin.statusProcessing"], value: adminOrders.filter((order) => order.status === "Processing").length, tone: "sand" },
-    { label: t["admin.statusInTransit"], value: adminOrders.filter((order) => order.status === "In transit").length, tone: "moss" },
-    { label: t["admin.statusCancelled"], value: adminOrders.filter((order) => order.status === "Cancelled").length, tone: "clay" },
+    { label: t["admin.statusProcessing"], value: orders.filter((order) => order.status === "Processing").length, tone: "sand" },
+    { label: t["admin.statusInTransit"], value: orders.filter((order) => order.status === "In transit").length, tone: "moss" },
+    { label: t["admin.statusCancelled"], value: orders.filter((order) => order.status === "Cancelled").length, tone: "clay" },
   ];
-  const inTransitOrders = adminOrders.filter((order) => order.status === "In transit");
+  const inTransitOrders = orders.filter((order) => order.status === "In transit");
+
+  useEffect(() => {
+    setBestSellerTitle(bestSellers.title);
+    setSelectedBestSellers(bestSellers.productIds);
+  }, [bestSellers]);
+
+  function toggleBestSeller(productId: string) {
+    setMerchandisingStatus("");
+    setSelectedBestSellers((current) =>
+      current.includes(productId) ? current.filter((entry) => entry !== productId) : [...current, productId],
+    );
+  }
+
+  async function saveBestSellers() {
+    await onSaveBestSellers({ title: bestSellerTitle, productIds: selectedBestSellers });
+    setMerchandisingStatus(t["admin.bestSellersSaved"]);
+  }
 
   return (
     <section className="admin-shell admin-dashboard">
@@ -68,12 +101,13 @@ export default function AdminPanel({
               ["orders", t["admin.tabOrders"]],
               ["delivery", t["admin.tabDelivery"]],
               ["reviews", t["admin.tabReviews"]],
+              ["merchandising", t["admin.merchandising"]],
             ].map(([key, label]) => (
               <button
                 className={adminTab === key ? "is-active" : ""}
                 key={key}
                 type="button"
-                onClick={() => setAdminTab(key as "overview" | "stock" | "orders" | "delivery" | "reviews")}
+                onClick={() => setAdminTab(key as "overview" | "stock" | "orders" | "delivery" | "reviews" | "merchandising")}
               >
                 {label}
               </button>
@@ -185,7 +219,7 @@ export default function AdminPanel({
               <DataTable
                 className="stock-table"
                 columns={[t["admin.product"], t["admin.category"], "XS", "S", "M", "L", "XL", t["admin.total"]]}
-                rows={adminStock.map((item) => [
+                rows={stock.map((item) => [
                   item.product,
                   item.category,
                   String(item.sizes.XS),
@@ -218,7 +252,7 @@ export default function AdminPanel({
                   t["admin.status"],
                   t["admin.date"],
                 ]}
-                rows={adminOrders.map((order) => [
+                rows={orders.map((order) => [
                   order.order,
                   order.customer,
                   order.items,
@@ -276,7 +310,7 @@ export default function AdminPanel({
                 <StatChip label={t["admin.avgRating"]} value={averageRating} />
               </div>
               <div className="review-list">
-                {adminReviews.map((review) => (
+                {reviews.map((review) => (
                   <article className="review-card" key={`${review.customer}-${review.date}`}>
                     <div className="review-head">
                       <div>
@@ -292,6 +326,44 @@ export default function AdminPanel({
                     <p>{review.comment}</p>
                   </article>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {adminTab === "merchandising" && (
+            <section className="admin-card admin-section-card">
+              <div className="card-head">
+                <div>
+                  <div className="section-label">{t["admin.merchandising"]}</div>
+                  <h3>{t["home.best.label"]}</h3>
+                </div>
+                <button className="button button-dark" type="button" onClick={() => void saveBestSellers()}>
+                  {t["admin.saveBestSellers"]}
+                </button>
+              </div>
+              <div className="merchandising-form">
+                <label>
+                  <span>{t["admin.bestSellerTitle"]}</span>
+                  <input value={bestSellerTitle} onChange={(event) => setBestSellerTitle(event.target.value)} />
+                </label>
+                <p>{merchandisingStatus || t["admin.bestSellerHelp"]}</p>
+              </div>
+              <div className="merchandising-product-grid">
+                {products.length === 0 ? (
+                  <p>{t["collection.empty"]}</p>
+                ) : (
+                  products.map((product) => {
+                    const copy = product.translations.en;
+                    const checked = selectedBestSellers.includes(product.id);
+                    return (
+                      <label className={checked ? "is-selected" : ""} key={product.id}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleBestSeller(product.id)} />
+                        <span>{copy.category}</span>
+                        <strong>{copy.name}</strong>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </section>
           )}

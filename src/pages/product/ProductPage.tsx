@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { detailLabels, products, type Lang, type Product } from "../../data";
+import { detailLabels, type Lang, type Product } from "../../data";
 import { formatPrice } from "../../utils/format";
 
 export default function ProductPage({
@@ -9,10 +9,12 @@ export default function ProductPage({
   setSelectedSize,
   onAddToCart,
   onOpenProduct,
+  products,
   t,
 }: {
   lang: Lang;
   product: Product;
+  products: Product[];
   selectedSize: string;
   setSelectedSize: (size: string) => void;
   onAddToCart: (product: Product, size: string) => void;
@@ -141,8 +143,8 @@ function ProductDetail({
           </div>
         </div>
         <div className="detail-lists">
-          <InfoList title={t["detail.details"]} items={product.details.map((key) => detailLabels[lang][key])} />
-          <InfoList title={t["detail.care"]} items={product.care.map((key) => detailLabels[lang][key])} />
+          <InfoList title={t["detail.details"]} items={product.details.map((key) => detailLabels[lang][key] ?? key)} />
+          <InfoList title={t["detail.care"]} items={product.care.map((key) => detailLabels[lang][key] ?? key)} />
         </div>
         <button className="button button-dark detail-add" type="button" onClick={() => onAddToCart(product, selectedSize)}>
           {t["detail.add"]}
